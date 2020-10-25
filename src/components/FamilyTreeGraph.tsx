@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import { TreeGraphData, TreeGraphLinkData, TreeGraphNodeData, TreeGraphNodeDataSimulation } from '../models/TreeGraphNodeData';
 import { updateArrayBindingPattern } from 'typescript';
 import PersonEntry from '../models/PersonEntry';
+import data from '../data/dummypersondata';
 
 const nodeWidth = 200;
 const nodeHeight = 200;
@@ -44,7 +45,7 @@ const positionOffset = (amountCouples: number, idx:number, axis: 'x'|'y') => {
     }
 };
 
-const drawCircle = (d3Obj: SVGSVGElement, data: TreeGraphNodeData, updateDirectRelation: (person:PersonEntry)=>void) => {
+const drawCircle = (d3Obj: d3.BaseType, data: TreeGraphNodeData, updateDirectRelation: (person:PersonEntry)=>void) => {
     d3.select(d3Obj).selectAll(`.node_${data.id}`)
         .data(data.data)
         .enter()
@@ -54,11 +55,7 @@ const drawCircle = (d3Obj: SVGSVGElement, data: TreeGraphNodeData, updateDirectR
         .attr('r', 50)
         .attr('stroke', 'black')
         .attr('stroke-width', '1')
-        .attr('fill', (person: PersonEntry) => 
-            person.markers.isDirectRelation
-                ? '#FF0000'
-                : '#FFFFFF'
-        )
+        .attr('fill', (person: PersonEntry) => '#FFFFFF')
         .on('mouseover', (event, person:PersonEntry) => { 
             updateDirectRelation(person);
         })
@@ -66,7 +63,7 @@ const drawCircle = (d3Obj: SVGSVGElement, data: TreeGraphNodeData, updateDirectR
         .attr('cy', (person: PersonEntry, idx: number) => positionOffset(data.data.length, idx, 'y'));
 };
 
-const writeText = (d3Obj: SVGSVGElement, data: TreeGraphNodeData, attribute: string, row: number) => {
+const writeText = (d3Obj: d3.BaseType, data: TreeGraphNodeData, attribute: string, row: number) => {
     d3.select(d3Obj).selectAll(`.text_${data.id}_${row}`)
         .data(data.data)
         .enter()
@@ -116,8 +113,32 @@ export default function FamilyTreeGraph(props: FamilyTreeGraphProps): ReactEleme
             .append('line')
             .style('stroke', '#aaa');
 
-        const updateRelation = (person: PersonEntry) => {
-
+        const updateRelation = (personParam: PersonEntry) => {
+            props.data.nodes = props.data.nodes.map<TreeGraphNodeData>((nodeData: TreeGraphNodeData, idx: number) => {
+                nodeData.data = nodeData.data.map<PersonEntry>((person: PersonEntry) => {
+                    if (person.id === personParam.id) person.markers.isDirectRelation = 'self';
+                    else if (person.fatherId === personParam.id) person.markers.isDirectRelation = 'child';
+                    else if (person.motherId === personParam.id) person.markers.isDirectRelation = 'child';
+                    else if (person.id === personParam.fatherId) person.markers.isDirectRelation = 'parent';
+                    else if (person.id === personParam.motherId) person.markers.isDirectRelation = 'parent';
+                    else person.markers.isDirectRelation = null;
+                    return person;
+                });
+                return nodeData;
+            });
+            svg
+                .selectAll('svg')
+                .data<TreeGraphNodeData>(props.data.nodes)
+                .each(function (d: TreeGraphNodeData) {
+                    d3.select(this).selectAll(`.node_${d.id}`)
+                        .data(d.data)
+                        .attr('fill', (person: PersonEntry) =>  {
+                            if (person.markers.isDirectRelation === 'self') return '#FFCCCC';
+                            else if (person.markers.isDirectRelation === 'parent') return '#CCFFCC';
+                            else if (person.markers.isDirectRelation === 'child') return '#CCCCFF';
+                            else return '#FFFFFF';
+                        });
+                });
         };
 
         // Initialize the nodes
