@@ -1,9 +1,7 @@
-import React, { ReactElement, useEffect, useRef, useState } from 'react';
+import React, { ReactElement, useEffect, useRef} from 'react';
 import * as d3 from 'd3';
 import { TreeGraphData, TreeGraphLinkData, TreeGraphNodeData, TreeGraphNodeDataSimulation } from '../models/TreeGraphNodeData';
-import { updateArrayBindingPattern } from 'typescript';
 import PersonEntry from '../models/PersonEntry';
-import data from '../data/dummypersondata';
 
 const nodeWidth = 200;
 const nodeHeight = 200;
@@ -55,8 +53,8 @@ const drawCircle = (d3Obj: d3.BaseType, data: TreeGraphNodeData, updateDirectRel
         .attr('r', 50)
         .attr('stroke', 'black')
         .attr('stroke-width', '1')
-        .attr('fill', (person: PersonEntry) => '#FFFFFF')
-        .on('mouseover', (event, person:PersonEntry) => { 
+        .attr('fill', '#FFFFFF')
+        .on('mouseover', (_, person:PersonEntry) => { 
             updateDirectRelation(person);
         })
         .attr('cx', (person: PersonEntry, idx: number) => positionOffset(data.data.length, idx, 'x'))
@@ -114,7 +112,7 @@ export default function FamilyTreeGraph(props: FamilyTreeGraphProps): ReactEleme
             .style('stroke', '#aaa');
 
         const updateRelation = (personParam: PersonEntry) => {
-            props.data.nodes = props.data.nodes.map<TreeGraphNodeData>((nodeData: TreeGraphNodeData, idx: number) => {
+            props.data.nodes = props.data.nodes.map<TreeGraphNodeData>((nodeData: TreeGraphNodeData) => {
                 nodeData.data = nodeData.data.map<PersonEntry>((person: PersonEntry) => {
                     if (person.id === personParam.id) person.markers.isDirectRelation = 'self';
                     else if (person.fatherId === personParam.id) person.markers.isDirectRelation = 'child';

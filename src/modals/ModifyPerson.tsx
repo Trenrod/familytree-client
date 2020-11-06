@@ -71,10 +71,10 @@ export default function ModifyPerson(props: ModifyPersonProps): ReactElement {
                 <AddIcon />
             </Fab>
             <Dialog maxWidth="lg" open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-                <DialogTitle id="form-dialog-title">Add new person</DialogTitle>
+                <DialogTitle id="form-dialog-title">Create new family member</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Here you can add a new person
+                        Family
                     </DialogContentText>
                     <form className={classes.inputstyle}>
                         {/* id,forename,lastname,birthname,birthdate,dayofdeath,placeofdeath,placeofbirth,fatherid,motherid,marriedtoid */}

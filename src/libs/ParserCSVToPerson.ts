@@ -4,7 +4,7 @@ import Axios from 'axios';
 import * as csv from 'fast-csv';
 
 export async function getPersonsFromCSV() {
-    const result = await Axios.get('/csv.tree');
+    const result = await Axios.get('/tree.csv');
     const peoples: PersonEntry[] = [];
             
     const parserPromise = new Promise<PersonEntry[]>((resolve, reject) => {
@@ -21,7 +21,7 @@ export async function getPersonsFromCSV() {
 }
 
 export async function getTreeGraphDataFromCSV() {
-    const result = await Axios.get('/csv.tree');
+    const result = await Axios.get('/tree.csv');
     const peoples: PersonEntry[] = [];
             
     const parserPromise = new Promise<TreeGraphData>((resolve, reject) => {
