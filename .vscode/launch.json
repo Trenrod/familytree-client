@@ -5,11 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "chrome",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "name": "Run to debug server",
+            "program": "${workspaceFolder}/server/src/app.ts",
             "request": "launch",
-            "name": "Launch Chrome against localhost",
-            "url": "http://localhost:3001",
-            "webRoot": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/server",
+            "restart": true,
+            "runtimeExecutable": "nodemon",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
         }
     ]
 }
