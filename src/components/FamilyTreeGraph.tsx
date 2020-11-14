@@ -1,7 +1,8 @@
-import React, { ReactElement, useEffect, useRef} from 'react';
+import React, { ReactElement, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { TreeGraphData, TreeGraphLinkData, TreeGraphNodeData, TreeGraphNodeDataSimulation } from '../models/TreeGraphNodeData';
 import PersonEntry from '../models/PersonEntry';
+import { D3ZoomEvent, zoomTransform } from 'd3';
 
 const nodeWidth = 200;
 const nodeHeight = 200;
@@ -13,37 +14,37 @@ const personDescTextOffsetY = 0;
 const personDescTextOffsetRowY = 15;
 const personDescTextOffsetX = 0;
 
-const positionOffset = (amountCouples: number, idx:number, axis: 'x'|'y') => {
+const positionOffset = (amountCouples: number, idx: number, axis: 'x' | 'y') => {
     if (amountCouples === 4) {
         if (idx === 0) {
-            return axis === 'x'? nodeWidth / 2 - coupleOffset: nodeHeight / 2 - coupleOffset;
+            return axis === 'x' ? nodeWidth / 2 - coupleOffset : nodeHeight / 2 - coupleOffset;
         } else if (idx === 1) {
-            return axis === 'x' ? nodeWidth / 2 + coupleOffset: nodeHeight / 2 + coupleOffset;
+            return axis === 'x' ? nodeWidth / 2 + coupleOffset : nodeHeight / 2 + coupleOffset;
         } else if (idx === 2) {
-            return axis === 'x'? nodeWidth / 2 - coupleOffset: nodeHeight / 2 + coupleOffset;
+            return axis === 'x' ? nodeWidth / 2 - coupleOffset : nodeHeight / 2 + coupleOffset;
         } else {
-            return axis === 'x' ?  nodeWidth / 2 + coupleOffset :  nodeHeight / 2 - coupleOffset;
+            return axis === 'x' ? nodeWidth / 2 + coupleOffset : nodeHeight / 2 - coupleOffset;
         }
     } else if (amountCouples === 3) {
         if (idx === 0) {
             return axis === 'x' ? nodeWidth / 2 - coupleOffset : nodeHeight / 2 - coupleOffset;
         } else if (idx === 1) {
-            return axis === 'x'?  nodeWidth / 2 : nodeHeight / 2 + coupleOffset;
+            return axis === 'x' ? nodeWidth / 2 : nodeHeight / 2 + coupleOffset;
         } else {
-            return axis === 'x'?  nodeWidth / 2 + coupleOffset:  nodeHeight / 2 - coupleOffset;
+            return axis === 'x' ? nodeWidth / 2 + coupleOffset : nodeHeight / 2 - coupleOffset;
         }
     } else if (amountCouples === 2) {
         if (idx === 0) {
-            return axis === 'x'? nodeWidth / 2 - coupleOffset: nodeHeight / 2;
+            return axis === 'x' ? nodeWidth / 2 - coupleOffset : nodeHeight / 2;
         } else {
-            return axis === 'x'? nodeWidth / 2 + coupleOffset : nodeHeight / 2;
+            return axis === 'x' ? nodeWidth / 2 + coupleOffset : nodeHeight / 2;
         }
     } else if (amountCouples === 1) {
-        return axis === 'x'? nodeWidth / 2:  nodeHeight / 2;
+        return axis === 'x' ? nodeWidth / 2 : nodeHeight / 2;
     }
 };
 
-const drawCircle = (d3Obj: d3.BaseType, data: TreeGraphNodeData, updateDirectRelation: (person:PersonEntry)=>void) => {
+const drawCircle = (d3Obj: d3.BaseType, data: TreeGraphNodeData, updateDirectRelation: (person: PersonEntry) => void) => {
     d3.select(d3Obj).selectAll(`.node_${data.id}`)
         .data(data.data)
         .enter()
@@ -54,7 +55,8 @@ const drawCircle = (d3Obj: d3.BaseType, data: TreeGraphNodeData, updateDirectRel
         .attr('stroke', 'black')
         .attr('stroke-width', '1')
         .attr('fill', '#FFFFFF')
-        .on('mouseover', (_, person:PersonEntry) => { 
+        .on('mouseover', (_, personRaw: any) => {
+            const person = personRaw as PersonEntry;
             updateDirectRelation(person);
         })
         .attr('cx', (person: PersonEntry, idx: number) => positionOffset(data.data.length, idx, 'x'))
@@ -71,8 +73,8 @@ const writeText = (d3Obj: d3.BaseType, data: TreeGraphNodeData, attribute: strin
         .attr('id', (person: PersonEntry) => `text_${person.id}_${row}`)
         .attr('font-size', '12px')
         .attr('text-anchor', 'middle')
-        .attr('x', (person: PersonEntry, idx: number) =>positionOffset(data.data.length, idx, 'x'))
-        .attr('y', (person: PersonEntry, idx: number) =>positionOffset(data.data.length, idx, 'y'))
+        .attr('x', (person: PersonEntry, idx: number) => positionOffset(data.data.length, idx, 'x'))
+        .attr('y', (person: PersonEntry, idx: number) => positionOffset(data.data.length, idx, 'y'))
         .attr(
             'transform',
             `translate(${personDescTextOffsetX},${personDescTextOffsetY + row * personDescTextOffsetRowY})`,
@@ -80,28 +82,51 @@ const writeText = (d3Obj: d3.BaseType, data: TreeGraphNodeData, attribute: strin
 };
 
 interface FamilyTreeGraphProps {
-  width: number;
-  height: number;
-  data: TreeGraphData;
+    width: number;
+    height: number;
+    data: TreeGraphData;
 }
 
 export default function FamilyTreeGraph(props: FamilyTreeGraphProps): ReactElement {
     const ref = useRef<SVGSVGElement>();
+    let innerSvg: any | null = null;
+
+    function zoomed({ transform }) {
+        if (innerSvg != null)
+            innerSvg.attr("transform", transform);
+    }
+
+    const zoom = d3.zoom()
+        .scaleExtent([0.2, 40])
+        .on("zoom", zoomed);
 
     useEffect(() => {
         if (ref.current == null) return;
-        d3.select(ref.current)
-            .attr('width', props.width)
-            .attr('height', props.height)
-            .style('border', '1px solid black');
+        const svg = d3.select(ref.current);
+        innerSvg =
+            svg.attr('width', "100vw -1px")
+                .attr('height', '100vh')
+                .append("g")
+                .attr("width", "5000")
+                .attr("height", "5000");
+
+        svg.call(
+            zoom.transform,
+            d3.zoomIdentity.translate(-500 + window.innerWidth / 2, -500 + window.innerHeight / 2).scale(.2)
+        );
+
+        svg.call(zoom);
+
     }, [props.height, props.width]);
+
 
     const draw = () => {
         if (ref.current == null) return;
-        const svg = d3.select(ref.current);
+        const svg = d3.select(ref.current).select('g')
 
-        let nodes = svg.select('svg').selectAll('circle');
+        let nodes = svg.select('g').selectAll('circle');
         svg.exit().remove();//remove unneeded circles
+
 
         // Initialize the links
         const link = svg
@@ -130,7 +155,7 @@ export default function FamilyTreeGraph(props: FamilyTreeGraphProps): ReactEleme
                 .each(function (d: TreeGraphNodeData) {
                     d3.select(this).selectAll(`.node_${d.id}`)
                         .data(d.data)
-                        .attr('fill', (person: PersonEntry) =>  {
+                        .attr('fill', (person: PersonEntry) => {
                             if (person.markers.isDirectRelation === 'self') return '#FFCCCC';
                             else if (person.markers.isDirectRelation === 'parent') return '#CCFFCC';
                             else if (person.markers.isDirectRelation === 'child') return '#CCCCFF';

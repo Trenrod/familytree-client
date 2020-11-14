@@ -1,0 +1,56 @@
+id,forename,lastname,birthname,birthdate,dayofdeath,placeofdeath,placeofbirth,fatherid,motherid,marriedtoid
+1,Albert,Dorn,,26.09.1983,,,Jarkoje,3,2,
+2,Maria,Dorn,Miller,30.06.1946,,,Krasnojarsk,,,4
+3,Ewald,Dorn,,15.03.1935,06.08.1995,Ulm,Sadka Strojewka (Kiev),24,25,2
+4,Elvira,Litzinger,Dorn,10.01.1968,,,,3,2,5
+5,Eduard,Litzinger,,,,,,,,4
+6,Andreas,Dorn,,01.01.1970,,,,3,2,7
+7,Ljuba,Dorn,Bruch,,,,,,,6
+8,Veronika,Dorn,,,,,,6,7,
+9,Alina,Dorn,,,,,,6,7,
+10,Matthias,Litzinger,,,,,,5,4,
+11,Christina,Litzinger,,,,,,5,4,
+12,Leonard,Litzinger,,,,,,5,4,
+13,Anastasia ,Kryukova,Dorn,23.05.1986,,,Moscow,15,18,19
+14,Ernest,Kryukov ,Dorn,02.08.2010,,,Moscow,19,13,
+15,Viktor,Dorn,Dorn,09.06.1959,,Moscow,Поселок Uwa Udmurtia,16,20,18
+16,Herbert,Dorn,Dorn,27.10.1930,31.11.2006,,,21,22,20
+17,Regina,Babisch ,Dorn,14.01.1988,,,Moscow,15,18,
+18,Svetlana,Schumaeva,,,,,,,,15
+19,Stanislav ,Kruykov,,,,,,,,13
+20,Valli ,Kittzler,,,,,,,,16
+21,Ludwig,Dorn,,12.10.1883,,,,40,,"22,27,28"
+22,Ottilia ,Dorn,Esse,14.06.1901,1952,,Sadka Strojewka (Kiev),39,29,21
+23,???,Linich,,,,,,,,25
+24,Herrmann,Dorn,,1912,1985,,,21,28,
+25,Ida,Linich/Dorn,Esse,,,,,,,"24,23"
+26,Anastazija,Zelic,Zelic,15.01.1986,,,,,,1
+27,Martha,Dorn,Esse,1896,1925,,,,,21
+28,Berta,Dorn,Bäuchel,1883,1922,,,,,21
+29,Eleоnora,Jesse,Schulmann,,,,,,,
+30,Fridrich,Dorn,,1912,,,,21,28,
+31,Karl,Dorn,,1921,1988,,,21,28,
+32,Arnold,Dorn,,,,,,21,28,
+33,Daniel,Dorn,,1924,1998,,,21,27,
+34,Lydia,Dorn,,01.01.1929,,,,21,22,
+35,Erich,Dorn,,17.07.1932,07.11.1985,,,21,22,
+36,Emil,Dorn,,04.08.1934,09.08.1967,,,21,22,
+37,Hedwig,Dorn,,28.03.1938,,,,21,22,
+38,Emma,Dorn,,18.11.1942,,,,21,22,
+39,Josef,Jesse,,,,,,,,29
+40,Michel,Dorn,,1856,1935,,,,,
+41,Reinhold,Linich,,,,,,23,25,
+42,Herbert,Linich,,,,,,23,25,
+43,Arthur,Linich,,,,,,23,25,
+44,Frieda,Linich,,,,,,23,25,
+45,Olga,,Linich,,,,,23,25,
+46,Nina,,Dorn,,,,,24,25,
+47,Frieda,,Dorn,,,,,24,25,
+48,Angelika,Dorn,Dorn,09.04.1978,,,Kazakhstan/Kostanay,52,53,
+49,Alyona,Deiker,Dorn,09.04.1979,,,Kazakhstan/Turgai,52,53,
+50,Arteum,Dorn,Dorn,09.08.1984,,,Russia/Birsk,,,
+51,Ivan,Dorn,Eremin,17.10.1988,,,Chelyabinsk,,,
+52,Emil,Dorn,Dorn,10.10.1953,,,"Dorf Uwa,Udmurtia",16,20,
+53,Natalya,Dorn,Gudz',27.04.1959,,,Kasachstan/Kostanai,,,
+54,Darya,,Deiker,22.03.1999,,,Kasachstan/Kostanai,,49,
+55,Veronika,,Deiker ,29.08.2005,,,Germany/Saarbrucken,,49,

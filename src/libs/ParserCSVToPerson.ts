@@ -6,7 +6,7 @@ import * as csv from 'fast-csv';
 export async function getPersonsFromCSV() {
     const result = await Axios.get('/tree.csv');
     const peoples: PersonEntry[] = [];
-            
+
     const parserPromise = new Promise<PersonEntry[]>((resolve, reject) => {
         csv.parseString(result.data, { headers: true })
             .on('error', (error) => reject(error))
@@ -20,10 +20,25 @@ export async function getPersonsFromCSV() {
     return parserPromise;
 }
 
+export async function getTreeGraphDataFromServer(): Promise<PersonEntry[] | null> {
+
+    try {
+        const result = await Axios.get('http://localhost:3000/person/all');
+        const peoples: PersonEntry[] = [];
+        result.data.forEach(element => {
+
+        });
+        return peoples;
+    } catch (error) {
+        console.error(error);
+    }
+    return null;
+}
+
 export async function getTreeGraphDataFromCSV() {
     const result = await Axios.get('/tree.csv');
     const peoples: PersonEntry[] = [];
-            
+
     const parserPromise = new Promise<TreeGraphData>((resolve, reject) => {
         csv.parseString(result.data, { headers: true })
             .on('error', (error) => reject(error))
@@ -46,7 +61,7 @@ export async function getTreeGraphDataFromCSV() {
                 // Create lookup map for peopleId and the nodeId
                 const mapPeopleNode: Map<number, number> = new Map();
                 // Final map nodeId and node
-                const nodesMap: Map<number, TreeGraphNodeData>= new Map();
+                const nodesMap: Map<number, TreeGraphNodeData> = new Map();
 
                 // Create nodes
                 let nodeId = 0;
@@ -61,7 +76,7 @@ export async function getTreeGraphDataFromCSV() {
                         }
 
                         for (let mIdx = 0; mIdx < people.marriedToId.length; mIdx++) {
-                            mapPeopleNode.set(people.marriedToId[mIdx], existingNodeId? existingNodeId: newNodeId);
+                            mapPeopleNode.set(people.marriedToId[mIdx], existingNodeId ? existingNodeId : newNodeId);
                         }
                     } else {
                         mapPeopleNode.set(people.id, newNodeId);
@@ -70,7 +85,7 @@ export async function getTreeGraphDataFromCSV() {
 
                 // Create nodes from map
                 mapPeopleNode.forEach((nodeId: number, peopleId: number) => {
-                    const nodeData: TreeGraphNodeData  = nodesMap.get(nodeId);
+                    const nodeData: TreeGraphNodeData = nodesMap.get(nodeId);
                     if (nodeData) {
                         nodeData.data.push(mapIdPeople.get(peopleId));
                         nodesMap.set(nodeId, nodeData);
@@ -92,8 +107,8 @@ export async function getTreeGraphDataFromCSV() {
                     const fatherNodeId = mapPeopleNode.get(people.fatherId);
                     const motherNodeId = mapPeopleNode.get(people.motherId);
                     const sourceNodeId = mapPeopleNode.get(people.id);
-                    const targetNodeId = fatherNodeId? fatherNodeId: motherNodeId;
-                        
+                    const targetNodeId = fatherNodeId ? fatherNodeId : motherNodeId;
+
                     if (sourceNodeId != null && targetNodeId != null) {
                         links.push({
                             source: sourceNodeId,

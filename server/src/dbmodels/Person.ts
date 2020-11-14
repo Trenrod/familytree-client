@@ -2,7 +2,7 @@ import { Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssocia
 
 export interface PersonAttributes {
     id: number;
-    forename: string | null;
+    forename: string | null | undefined;
     lastname?: string | null;
     birthname?: string | null;
     birthdate?: Date | null;
@@ -20,16 +20,16 @@ export interface PersonCreationAttributes extends Optional<PersonAttributes, "id
 
 export class Person extends Model<PersonAttributes, PersonCreationAttributes> implements PersonAttributes {
     public id!: number;
-    public forename!: string | null;
-    public lastname!: string | null;
-    public birthname!: string | null;
-    public birthdate!: Date | null;
-    public dayOfDeath!: Date | null;
-    public placeOfDeath!: string | null;
-    public placeOfBirth!: string | null;
-    public fatherId!: number | null;
-    public motherId!: number | null;
-    public avatar!: boolean;
+    public forename: string | null | undefined;
+    public lastname: string | null | undefined;
+    public birthname: string | null | undefined;
+    public birthdate: Date | null | undefined;
+    public dayOfDeath: Date | null | undefined;
+    public placeOfDeath: string | null | undefined;
+    public placeOfBirth: string | null | undefined;
+    public fatherId: number | null | undefined;
+    public motherId: number | null | undefined;
+    public avatar: boolean | undefined;
 
     // public readonly createdAt!: Date;
     // public readonly updatedAt!: Date;
@@ -52,6 +52,10 @@ export class Person extends Model<PersonAttributes, PersonCreationAttributes> im
     public static associations: {
         spouses: Association<Person, Person>;
     };
+
+    static isPersonCreationAttributes(obj: any): obj is Person {
+        return typeof obj.forename === "string" && typeof obj.lastname === "string";
+    }
 
     public static tableInit(): ModelAttributes<Person> {
         return {

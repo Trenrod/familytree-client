@@ -5,9 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "command": "npm run start",
+            "name": "Start client in debug mode",
+            "request": "launch",
+            "type": "node-terminal"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Chrome against localhost",
+            "url": "http://localhost:3001",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-            "name": "Run to debug server",
+            "name": "Start server with nodeamon",
             "program": "${workspaceFolder}/server/src/app.ts",
             "request": "launch",
             "cwd": "${workspaceFolder}/server",

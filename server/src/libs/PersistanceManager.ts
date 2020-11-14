@@ -40,9 +40,18 @@ export default class PersistanceManager {
 
     }
 
-    public async createPerson(person: PersonAttributes): Promise<Person> {
-        const newPerson = this.personDB!.build(person)
-        return await newPerson.save();
+    public async readAllPersons(): Promise<Person[]> {
+        return await this.personDB!.findAll();
+    }
+
+    public async createPerson(person: PersonAttributes): Promise<Person | null> {
+        try {
+            const newPerson = this.personDB!.build(person)
+            return await newPerson.save();
+        } catch (error) {
+            log.error("Faild to create person entry", error);
+        }
+        return null;
     }
 
     public async readPerson(personId: number): Promise<Person | null> {
@@ -54,20 +63,25 @@ export default class PersistanceManager {
         if (personToUpdate != null) {
             personToUpdate.forename = person.forename;
             personToUpdate.lastname = person.forename;
-            personToUpdate.birthname = string | null;
-            personToUpdate.birthdate = Date | null;
-            personToUpdate.dayOfDeath = Date | null;
-            personToUpdate.placeOfDeath = string | null;
-            personToUpdate.placeOfBirth = string | null;
-            personToUpdate.fatherId = number | null;
-            personToUpdate.motherId = number | null;
-            personToUpdate.avatar = boolean;
-            personToUpdate.save();
+            personToUpdate.birthname = person.birthname;
+            personToUpdate.birthdate = person.birthdate;
+            personToUpdate.dayOfDeath = person.dayOfDeath;
+            personToUpdate.placeOfDeath = person.placeOfDeath;
+            personToUpdate.placeOfBirth = person.placeOfBirth;
+            personToUpdate.fatherId = person.fatherId;
+            personToUpdate.motherId = person.motherId;
+            personToUpdate.avatar = person.avatar;
+            return await personToUpdate.save();
         }
         return null;
     }
 
-    public async deletePerson(personId: number): Promise<number> {
-        return this.personDB!.destroy(personId);
+    public async deletePerson(personId: number): Promise<boolean> {
+        const personToUpdate = await this.personDB!.findByPk(personId);
+        if (personToUpdate != null) {
+            await personToUpdate.destroy();
+            return true;
+        }
+        return false;
     }
 }

@@ -6,6 +6,8 @@ import * as swaggerDocument from './swagger.json';
 import { ConfigManager } from './libs/Configuration';
 import personRoute from './routes/Person';
 import PersistanceManager from "./libs/persistancemanager";
+import bodyParser from "body-parser";
+import cors from 'cors';
 
 // Init config and persistance
 const start = async () => {
@@ -14,6 +16,10 @@ const start = async () => {
 
     const app = express();
 
+    app.use(cors());
+    app.use(bodyParser.urlencoded({ extended: true }));
+    // app.use(express.static(path.join(__dirname, 'public')));
+    app.use(bodyParser.json());
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
     app.use('/person', personRoute);
