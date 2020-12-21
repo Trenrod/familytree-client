@@ -7,7 +7,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import { Chip, createStyles, Fab, FormControl, Input, InputLabel, makeStyles, MenuItem, Select} from '@material-ui/core';
+import { Chip, createStyles, Fab, FormControl, Input, InputLabel, makeStyles, MenuItem, Select } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import { FormGroup } from '@material-ui/core';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
@@ -16,6 +16,11 @@ import {
     KeyboardDatePicker,
 } from '@material-ui/pickers';
 import PersonEntry from '../models/PersonEntry';
+import Axios from 'axios';
+import CONFIG from '../libs/Config';
+import { IPersonEntry } from '../models/IPersonEntry';
+import { useSnackbar } from 'notistack';
+import { Logger } from '../libs/Logger';
 
 const useStyles = makeStyles(() =>
     createStyles({
@@ -23,16 +28,50 @@ const useStyles = makeStyles(() =>
             margin: '0.5rem',
             flexGrow: 1
         },
+        chips: {
+            display: 'flex',
+            flexWrap: 'wrap',
+        },
+        chip: {
+            margin: 2,
+        },
     }),
 );
 
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+            width: 250,
+        },
+    },
+};
+
 interface ModifyPersonProps {
-  personData: PersonEntry[];
+    personData: Map<number, PersonEntry>;
 }
 
 export default function ModifyPerson(props: ModifyPersonProps): ReactElement {
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
+    const [createPerson, setCreatePerson] = React.useState<IPersonEntry>({
+        birthdate: null,
+        birthName: null,
+        dayOfDeath: null,
+        fatherId: null,
+        forename: null,
+        id: null,
+        lastname: null,
+        marriedToId: [],
+        motherId: null,
+        placeOfBirth: null,
+        placeOfDeath: null,
+        gender: null,
+        markers: null
+    });
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -42,32 +81,40 @@ export default function ModifyPerson(props: ModifyPersonProps): ReactElement {
         setOpen(false);
     };
 
-    const [selectedDateOfBirth, setDateOfBirth] = React.useState<Date | null>(
-        null
-    );
+    const handleCreate = async () => {
+        try {
+            const result = await Axios.post(`${CONFIG.SERVER_API_URL}\\person`, createPerson);
+            enqueueSnackbar("Successfully stored", {
+                variant: "success"
+            });
+        } catch (error) {
+            Logger.error("Failed to store new person", {}, error);
+            enqueueSnackbar("Failed to store new person.", {
+                variant: "error"
+            });
+        }
+    }
+
     const handleDateOfBirthChange = (date: Date | null) => {
-        setDateOfBirth(date);
+        setCreatePerson({ ...createPerson, birthdate: date });
     };
 
-    const [selectedDateOfDeath, setDateOfDeath] = React.useState<Date | null>(
-        null
-    );
     const handleDateOfDeathChange = (date: Date | null) => {
-        setDateOfDeath(date);
+        setCreatePerson({ ...createPerson, dayOfDeath: date });
     };
 
-    const peopleOptionList = props.personData.map((value: PersonEntry) => {
-        return (<option key={value.id} value={value.id}>{`(${value.id}) ${value.forename} ${value.lastname}`}</option>);
+    let peopleOptionList = [<MenuItem key={''} value={'unknown'}>Unknown</MenuItem>];
+    props.personData.forEach((value: PersonEntry) => {
+        peopleOptionList.push(<MenuItem key={value.id} value={value.id.toString()}>{`(${value.id}) ${value.forename} ${value.lastname}`}</MenuItem>);
     });
-
+    console.log("FatherId: " + createPerson.fatherId);
     return (
         <div>
-
             <Fab color="primary" aria-label="add" style={{
-                position:'fixed',
+                position: 'fixed',
                 bottom: '5rem',
-                right:'5rem'
-            }}onClick={handleClickOpen}>
+                right: '5rem'
+            }} onClick={handleClickOpen}>
                 <AddIcon />
             </Fab>
             <Dialog maxWidth="lg" open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
@@ -79,115 +126,140 @@ export default function ModifyPerson(props: ModifyPersonProps): ReactElement {
                     <form className={classes.inputstyle}>
                         {/* id,forename,lastname,birthname,birthdate,dayofdeath,placeofdeath,placeofbirth,fatherid,motherid,marriedtoid */}
                         <FormGroup row={true} >
-                            <TextField id="standard-name" label="Forename" onChange={() => {}} className={classes.inputstyle} />
-                            <TextField id="standard-name" label="Lastname" onChange={() => {}} className={classes.inputstyle} />
+                            <TextField id="standard-name" label="Forename" className={classes.inputstyle}
+                                onChange={(event: any) => {
+                                    setCreatePerson({ ...createPerson, forename: event.target.value });
+                                }} />
+                            <TextField id="standard-name" label="Lastname" className={classes.inputstyle}
+                                onChange={(event) => {
+                                    setCreatePerson({ ...createPerson, lastname: event.target.value });
+                                }} />
                         </FormGroup>
                         <FormGroup row={true} >
-                            <TextField id="standard-name" label="Current residence" onChange={() => {}} className={classes.inputstyle} />
-                            <TextField id="standard-name" label="Birthname" onChange={() => {}} className={classes.inputstyle} />
+                            <TextField id="standard-name" label="Birthname" className={classes.inputstyle}
+                                onChange={(event) => {
+                                    setCreatePerson({ ...createPerson, birthName: event.target.value });
+                                }} />
                         </FormGroup>
-                        <FormGroup row={true} style={{justifyContent: 'space-between'}}>
+                        <FormGroup row={true} style={{ justifyContent: 'space-between' }}>
                             <MuiPickersUtilsProvider utils={DateFnsUtils}>
                                 <KeyboardDatePicker className={classes.inputstyle}
                                     margin="normal"
                                     id="date-picker-dialog"
                                     label="Date of birth"
                                     format="MM/dd/yyyy"
-                                    value={selectedDateOfBirth}
+                                    value={createPerson.birthdate}
                                     onChange={handleDateOfBirthChange}
-                                    KeyboardButtonProps={{
-                                        'aria-label': 'change date',
-                                    }}/>
+                                />
                             </MuiPickersUtilsProvider>
-                            <TextField id="standard-name" label="Place of birth" onChange={() => {}} className={classes.inputstyle} />
+                            <TextField id="standard-name" label="Place of birth" className={classes.inputstyle}
+                                onChange={(event) => {
+                                    setCreatePerson({ ...createPerson, placeOfBirth: event.target.value });
+                                }}
+                            />
                         </FormGroup>
-                        <FormGroup row={true} style={{justifyContent: 'space-between'}}>
+                        <FormGroup row={true} style={{ justifyContent: 'space-between' }}>
                             <MuiPickersUtilsProvider utils={DateFnsUtils}>
                                 <KeyboardDatePicker className={classes.inputstyle}
                                     margin="normal"
-                                    id="date-picker-dialog"
                                     label="Date of death"
                                     format="MM/dd/yyyy"
-                                    value={selectedDateOfDeath}
+                                    value={createPerson.dayOfDeath}
                                     onChange={handleDateOfDeathChange}
-                                    KeyboardButtonProps={{
-                                        'aria-label': 'change date',
-                                    }}/>
+                                />
                             </MuiPickersUtilsProvider>
-                            <TextField id="standard-name" label="Place of dead" onChange={() => {}} className={classes.inputstyle} />
+                            <TextField id="standard-name" label="Place of dead" className={classes.inputstyle}
+                                onChange={(event) => {
+                                    setCreatePerson({ ...createPerson, placeOfDeath: event.target.value });
+                                }} />
                         </FormGroup>
                         <FormGroup row={true} >
                             <FormControl className={classes.inputstyle}>
-                                <InputLabel htmlFor="age-native-simple">Father</InputLabel>
-                                <Select                                 
-                                    native
-                                    value={'xxx'}
-                                    onChange={()=>{}}
-                                    inputProps={{
-                                        name: 'age',
-                                        id: 'age-native-simple',
-                                    }}
-                                >
-                                    {peopleOptionList}
-                                </Select>
-                            </FormControl>
-                        </FormGroup>
-                        <FormGroup row={true} >
-                            <FormControl className={classes.inputstyle}>
-                                <InputLabel htmlFor="age-native-simple">Father</InputLabel>
-                                <Select                                 
-                                    native
-                                    value={'xxx'}
-                                    onChange={()=>{}}
-                                    inputProps={{
-                                        name: 'age',
-                                        id: 'age-native-simple',
-                                    }}
-                                >
-                                    {peopleOptionList}
-                                </Select>
-                            </FormControl>
-                            {/* <TextField id="standard-name" label="Father" onChange={() => {}} className={classes.inputstyle} />
-                            <TextField id="standard-name" label="Mother" onChange={() => {}} className={classes.inputstyle} /> */}
-                        </FormGroup>
-                        <FormGroup row={true} >
-                            {/* <FormControl className={classes.inputstyle}>
-                                <InputLabel id="demo-mutiple-chip-label">Chip</InputLabel>
+                                <InputLabel htmlFor="fatherId">Father</InputLabel>
                                 <Select
-                                    labelId="demo-mutiple-chip-label"
-                                    id="demo-mutiple-chip"
+                                    id="fatherId"
+                                    value={createPerson.fatherId == null
+                                        ? 'unknown'
+                                        : createPerson.fatherId.toString()}
+                                    onChange={(event: any) => {
+                                        try {
+                                            let value = null;
+                                            if (event.target.value != null && event.target.value !== 'unknown') {
+                                                value = parseInt(event.target.value);
+                                            }
+                                            setCreatePerson({ ...createPerson, fatherId: value });
+                                        } catch (error) {
+                                            console.error(error);
+                                        }
+                                    }}
+                                >
+                                    {peopleOptionList}
+                                </Select>
+                            </FormControl>
+                        </FormGroup>
+                        <FormGroup row={true} >
+                            <FormControl className={classes.inputstyle}>
+                                <InputLabel htmlFor="motherId">Mother</InputLabel>
+                                <Select
+                                    id="motherId"
+                                    value={createPerson.motherId == null
+                                        ? 'unknown'
+                                        : createPerson.motherId.toString()}
+                                    onChange={(event: any) => {
+                                        try {
+                                            let value = null;
+                                            if (event.target.value != null && event.target.value !== 'unknown') {
+                                                value = parseInt(event.target.value);
+                                            }
+                                            setCreatePerson({ ...createPerson, motherId: value });
+                                        } catch (error) {
+                                            console.error(error);
+                                        }
+                                    }}
+                                >
+                                    {peopleOptionList}
+                                </Select>
+                            </FormControl>
+                        </FormGroup>
+                        <FormGroup row={true} >
+                            <FormControl className={classes.inputstyle}>
+                                <InputLabel id="marriedWithLabelId">Married with</InputLabel>
+                                <Select
+                                    labelId="marriedWithLabelId"
+                                    id="marriedWithId"
                                     multiple
-                                    value={personName}
-                                    onChange={handleChange}
+                                    value={createPerson.marriedToId}
+                                    onChange={(event: any) => {
+                                        let value: number[] = [];
+                                        try {
+                                            if (event.target.value != null && event.target.value !== 'unknown') {
+                                                if (Array.isArray(event.target.value)) {
+                                                    value = event.target.value.map((value: string) =>
+                                                        parseInt(value)
+                                                    )
+                                                } else {
+                                                    value = [parseInt(event.target.value)];
+                                                }
+                                            }
+                                        } catch (error) {
+                                            console.error(error);
+                                        }
+                                        setCreatePerson({
+                                            ...createPerson, marriedToId: value
+                                        });
+                                    }}
                                     input={<Input id="select-multiple-chip" />}
-                                    renderValue={(selected) => (
+                                    renderValue={(selected: number[]) => (
                                         <div className={classes.chips}>
-                                            {(selected as string[]).map((value) => (
-                                                <Chip key={value} label={value} className={classes.chip} />
+                                            {selected.map((value: number) => (
+                                                <Chip
+                                                    key={value}
+                                                    label={props.personData.get(value).forename}
+                                                    className={classes.chip} />
                                             ))}
                                         </div>
                                     )}
-                                    MenuProps={MenuProps}
-                                >
-                                    {names.map((name) => (
-                                        <MenuItem key={name} value={name} style={getStyles(name, personName, theme)}>
-                                            {name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl> */}
-                        </FormGroup>
-                        <FormGroup row={true} >
-                            <FormControl className={classes.inputstyle}>
-                                <InputLabel htmlFor="age-native-simple">Married with</InputLabel>
-                                <Select                                 
-                                    native
-                                    value={'xxx'}
-                                    onChange={()=>{}}
-                                    inputProps={{
-                                        name: 'age',
-                                        id: 'age-native-simple',
-                                    }}
+                                // MenuProps={MenuProps}
                                 >
                                     {peopleOptionList}
                                 </Select>
@@ -199,7 +271,7 @@ export default function ModifyPerson(props: ModifyPersonProps): ReactElement {
                     <Button onClick={handleClose} color="primary">
                         Cancel
                     </Button>
-                    <Button onClick={handleClose} color="primary">
+                    <Button onClick={handleCreate} color="primary">
                         Create
                     </Button>
                 </DialogActions>

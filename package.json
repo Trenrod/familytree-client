@@ -2,9 +2,9 @@
   "name": "familytreets",
   "version": "0.1.0",
   "private": true,
+  "bin": "./bin/npm-cli.js",
   "dependencies": {
     "@date-io/date-fns": "^1.3.13",
-    "@date-io/moment": "^1.3.13",
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/pickers": "^3.2.10",
@@ -20,16 +20,17 @@
     "date-fns": "^2.16.1",
     "fast-csv": "^4.3.2",
     "moment": "^2.29.1",
+    "notistack": "^1.0.2",
     "pg": "^8.4.2",
     "pg-hstore": "^2.3.3",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-scripts": "3.4.4",
+    "react-scripts": "^3.4.4",
     "sequelize": "^6.3.5",
     "typescript": "~3.7.2"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "./node_modules/.bin/react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -54,7 +55,6 @@
     "@types/swagger-ui-express": "^4.1.2",
     "@typescript-eslint/eslint-plugin": "^4.4.1",
     "@typescript-eslint/parser": "^4.5.0",
-    "eslint": "^6.6.0",
     "eslint-config-airbnb": "^18.2.0",
     "eslint-config-airbnb-typescript": "^12.0.0",
     "eslint-plugin-import": "^2.22.0",

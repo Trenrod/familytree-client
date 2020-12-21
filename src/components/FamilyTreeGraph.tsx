@@ -104,7 +104,7 @@ export default function FamilyTreeGraph(props: FamilyTreeGraphProps): ReactEleme
         if (ref.current == null) return;
         const svg = d3.select(ref.current);
         innerSvg =
-            svg.attr('width', "100vw -1px")
+            svg.attr('width', "100vw")
                 .attr('height', '100vh')
                 .append("g")
                 .attr("width", "5000")
@@ -215,8 +215,8 @@ export default function FamilyTreeGraph(props: FamilyTreeGraphProps): ReactEleme
     }, [props.data, draw]);
 
     return (
-        <div className="chart">
-            <svg ref={ref} />
-        </div>
+        // <div style={{ "margin": "-5px" }} className="chart">
+        <svg ref={ref} />
+        // </div>
     );
 }

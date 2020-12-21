@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import { TreeGraphData, TreeGraphNodeData } from './models/TreeGraphNodeData';
 import FamilyTreeGraph from './components/FamilyTreeGraph';
-import { getPersonsFromCSV, getTreeGraphDataFromCSV, getTreeGraphDataFromServer } from './libs/ParserCSVToPerson';
+import { getPersonsFromCSV, getPersonsFromServer, getTreeGraphDataFromCSV, getTreeGraphDataFromServer } from './libs/ParserCSVToPerson';
 import FormDialog from './modals/ModifyPerson';
 import PersonEntry from './models/PersonEntry';
+import CONFIG from './libs/Config'
 
 function App() {
     const [dataset, setDataset] = useState<TreeGraphData>({
@@ -12,13 +13,13 @@ function App() {
         nodes: []
     });
 
-    const [personList, setPersonList] = useState<PersonEntry[]>([]);
+    const [personList, setPersonList] = useState<Map<number, PersonEntry>>(new Map());
 
     useEffect(() => {
         async function fetchData() {
-            const newDataSet = await getTreeGraphDataFromCSV();
+            const newDataSet = await getTreeGraphDataFromServer("http://localhost:3080");
             setDataset(newDataSet);
-            const persons = await getPersonsFromCSV();
+            const persons = await getPersonsFromServer("http://localhost:3080");
             setPersonList(persons);
         }
         fetchData();
@@ -26,10 +27,7 @@ function App() {
 
     return (
         <div>
-            {dataset.nodes.length > 0
-                ? <FormDialog personData={personList}></FormDialog>
-                : null
-            }
+            <FormDialog personData={personList}></FormDialog>
             <FamilyTreeGraph width={5000} height={5000} data={dataset} />
         </div>
     );

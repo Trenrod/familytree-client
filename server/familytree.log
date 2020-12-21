@@ -271,3 +271,54 @@
 {"message":"Connection has been established successfully.","level":"info"}
 {"message":"Connection has been established successfully.","level":"info"}
 {"name":"SequelizeConnectionRefusedError","parent":{"errno":"ECONNREFUSED","code":"ECONNREFUSED","syscall":"connect","address":"127.0.0.1","port":5432},"original":{"errno":"ECONNREFUSED","code":"ECONNREFUSED","syscall":"connect","address":"127.0.0.1","port":5432},"level":"error","message":"Unable to connect to the database: connect ECONNREFUSED 127.0.0.1:5432","stack":"SequelizeConnectionRefusedError: connect ECONNREFUSED 127.0.0.1:5432\n    at Client._connectionCallback (X:\\dev\\familytree\\node_modules\\sequelize\\lib\\dialects\\postgres\\connection-manager.js:172:24)\n    at Client._handleErrorWhileConnecting (X:\\dev\\familytree\\node_modules\\pg\\lib\\client.js:305:19)\n    at Client._handleErrorEvent (X:\\dev\\familytree\\node_modules\\pg\\lib\\client.js:315:19)\n    at Connection.emit (events.js:315:20)\n    at Socket.reportStreamError (X:\\dev\\familytree\\node_modules\\pg\\lib\\connection.js:53:12)\n    at Socket.emit (events.js:315:20)\n    at emitErrorNT (internal/streams/destroy.js:92:8)\n    at emitErrorAndCloseNT (internal/streams/destroy.js:60:3)\n    at processTicksAndRejections (internal/process/task_queues.js:84:21)"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"level":"error","message":"Faild to create person entry Cannot read property 'build' of null","stack":"TypeError: Cannot read property 'build' of null\n    at PersistanceManager.createPerson (X:\\dev\\familytree\\server\\src\\libs\\PersistanceManager.ts:49:46)\n    at X:\\dev\\familytree\\server\\src\\routes\\Person.ts:55:35\n    at Layer.handle [as handle_request] (X:\\dev\\familytree\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (X:\\dev\\familytree\\server\\node_modules\\express\\lib\\router\\route.js:137:13)\n    at Route.dispatch (X:\\dev\\familytree\\server\\node_modules\\express\\lib\\router\\route.js:112:3)\n    at Layer.handle [as handle_request] (X:\\dev\\familytree\\server\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at X:\\dev\\familytree\\server\\node_modules\\express\\lib\\router\\index.js:281:22\n    at Function.process_params (X:\\dev\\familytree\\server\\node_modules\\express\\lib\\router\\index.js:335:12)\n    at next (X:\\dev\\familytree\\server\\node_modules\\express\\lib\\router\\index.js:275:10)\n    at timeLog (X:\\dev\\familytree\\server\\src\\routes\\Person.ts:11:5)"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"name":"SequelizeConnectionRefusedError","parent":{"errno":"ECONNREFUSED","code":"ECONNREFUSED","syscall":"connect","address":"127.0.0.1","port":5432},"original":{"errno":"ECONNREFUSED","code":"ECONNREFUSED","syscall":"connect","address":"127.0.0.1","port":5432},"level":"error","message":"Unable to connect to the database: connect ECONNREFUSED 127.0.0.1:5432","stack":"SequelizeConnectionRefusedError: connect ECONNREFUSED 127.0.0.1:5432\n    at Client._connectionCallback (X:\\dev\\familytree\\node_modules\\sequelize\\lib\\dialects\\postgres\\connection-manager.js:172:24)\n    at Client._handleErrorWhileConnecting (X:\\dev\\familytree\\node_modules\\pg\\lib\\client.js:305:19)\n    at Client._handleErrorEvent (X:\\dev\\familytree\\node_modules\\pg\\lib\\client.js:315:19)\n    at Connection.emit (events.js:315:20)\n    at Socket.reportStreamError (X:\\dev\\familytree\\node_modules\\pg\\lib\\connection.js:53:12)\n    at Socket.emit (events.js:315:20)\n    at emitErrorNT (internal/streams/destroy.js:92:8)\n    at emitErrorAndCloseNT (internal/streams/destroy.js:60:3)\n    at processTicksAndRejections (internal/process/task_queues.js:84:21)"}
+{"name":"SequelizeConnectionRefusedError","parent":{"errno":"ECONNREFUSED","code":"ECONNREFUSED","syscall":"connect","address":"127.0.0.1","port":5432},"original":{"errno":"ECONNREFUSED","code":"ECONNREFUSED","syscall":"connect","address":"127.0.0.1","port":5432},"level":"error","message":"Unable to connect to the database: connect ECONNREFUSED 127.0.0.1:5432","stack":"SequelizeConnectionRefusedError: connect ECONNREFUSED 127.0.0.1:5432\n    at Client._connectionCallback (X:\\dev\\familytree\\node_modules\\sequelize\\lib\\dialects\\postgres\\connection-manager.js:172:24)\n    at Client._handleErrorWhileConnecting (X:\\dev\\familytree\\node_modules\\pg\\lib\\client.js:305:19)\n    at Client._handleErrorEvent (X:\\dev\\familytree\\node_modules\\pg\\lib\\client.js:315:19)\n    at Connection.emit (events.js:315:20)\n    at Socket.reportStreamError (X:\\dev\\familytree\\node_modules\\pg\\lib\\connection.js:53:12)\n    at Socket.emit (events.js:315:20)\n    at emitErrorNT (internal/streams/destroy.js:92:8)\n    at emitErrorAndCloseNT (internal/streams/destroy.js:60:3)\n    at processTicksAndRejections (internal/process/task_queues.js:84:21)"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}
+{"message":"Connection has been established successfully.","level":"info"}

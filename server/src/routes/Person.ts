@@ -55,7 +55,8 @@ router.post('/', async (req, res) => {
     const person = await perstMge.createPerson(req.body as Person);
     if (person != null)
         res.status(201).json(person.toJSON());
-    res.status(204).json(null);
+    else
+        res.status(204).json(null);
 })
 
 router.put('/:id', async (req, res) => {

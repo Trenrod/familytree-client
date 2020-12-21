@@ -41,7 +41,8 @@ export default class PersistanceManager {
     }
 
     public async readAllPersons(): Promise<Person[]> {
-        return await this.personDB!.findAll();
+        const data = await this.personDB!.findAll();
+        return data;
     }
 
     public async createPerson(person: PersonAttributes): Promise<Person | null> {

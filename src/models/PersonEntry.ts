@@ -1,7 +1,13 @@
-class PersonEntry {
-    birthdate?: string | null;
+import { IPersonEntry } from "./IPersonEntry";
+
+export interface IMarker {
+    isDirectRelation: 'self' | 'parent' | 'child' | 'silbling' | null
+};
+
+export default class PersonEntry implements IPersonEntry {
+    birthdate?: Date | null;
     birthName?: string | null;
-    dayOfDeath?: string | null;
+    dayOfDeath?: Date | null;
     fatherId?: number | null;
     forename?: string | null;
     id: number | null;
@@ -10,26 +16,51 @@ class PersonEntry {
     motherId?: number | null;
     placeOfBirth?: string | null;
     placeOfDeath?: string | null;
-    markers?: {isDirectRelation: 'self'|'parent'| 'child'| 'silbling'| null}
+    gender?: "m" | "f" | null;
+    markers?: IMarker | null;
 
     constructor(dataObj: any) {
         this.birthdate = dataObj.birthdate;
         this.birthName = dataObj.birthname;
         this.dayOfDeath = dataObj.dayofdeath;
-        this.fatherId = dataObj.fatherid !== ''? parseInt(dataObj.fatherid): null;
+        this.fatherId = dataObj.fatherId != null ? parseInt(dataObj.fatherId) : null;
+        this.motherId = dataObj.motherId != null ? parseInt(dataObj.motherId) : null;
         this.forename = dataObj.forename;
-        this.id = dataObj.id !== ''? parseInt(dataObj.id): null;
+        this.id = dataObj.id !== '' ? parseInt(dataObj.id) : null;
         this.lastname = dataObj.lastname;
-        this.marriedToId = dataObj.marriedtoid !== ''? dataObj.marriedtoid.split(',').map(marriedId => 
+        this.marriedToId = dataObj.hasOwnProperty('marriedtoId') && dataObj.marriedtoId !== '' ? dataObj.marriedtoId.split(',').map(marriedId =>
             parseInt(marriedId)
         ) : [];
-        this.motherId = dataObj.motherid !== ''? parseInt(dataObj.motherid): null;
         this.placeOfBirth = dataObj.placeofbirth;
         this.placeOfDeath = dataObj.placeofdeath;
         this.markers = {
             isDirectRelation: null
         };
+        this.gender = dataObj.gender
+    }
+    public setBirthName(value: string): PersonEntry {
+        this.birthName = value;
+        return this;
+    }
+
+    public setPlaceOfBirth(value: string): PersonEntry {
+        this.placeOfBirth = value;
+        return this;
+    }
+    public setLastname(value: string): PersonEntry {
+        this.forename = value;
+        return this;
+    }
+    public setForename(value: string): PersonEntry {
+        this.lastname = value;
+        return this;
+    }
+    public setPlaceOfDeath(value: string): PersonEntry {
+        this.placeOfDeath = value;
+        return this;
+    }
+    public setFatherId(value: number | null): PersonEntry {
+        this.fatherId = value;
+        return this;
     }
 }
-
-export default PersonEntry;
