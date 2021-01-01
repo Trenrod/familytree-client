@@ -2,8 +2,8 @@ import express from 'express';
 import { PersonDB } from "../dbmodels/PersonDB";
 import { ERROR_CODES, FTError } from '../libs/Errorcode';
 import PersistanceManager from '../libs/PersistanceManager';
-import { isPerson } from '../models/PersonCheck';
-import { person, Person, PersonWithId } from '../restapi/Api';
+import { isMarriage } from '../models/MarriageCheck';
+import { Marriage, PersonWithId } from '../restapi/Api';
 
 const router = express.Router();
 const perstMge: PersistanceManager = PersistanceManager.getInstance();
@@ -14,48 +14,55 @@ router.use(function timeLog(req, res, next) {
 });
 
 router.get('/all', async (req, res) => {
-    const persons = await perstMge.readAllPersons();
-    res.status(200).json(persons);
+    try {
+        const marriages = await perstMge.readAllMarriages();
+        res.status(200).json(marriages);
+    } catch (exception) {
+        const error: FTError = {
+            code: ERROR_CODES.ERROR_INTERNAL_SERVER_ERROR,
+            message: exception.message
+        };
+        res.status(500).json(error);
+    }
 });
 
 router.get('/:id', async (req, res) => {
-    if (req.params.id == null) {
-        const error: FTError = {
-            code: ERROR_CODES.ERROR_INVALID_REQUEST,
-            message: "Path param id missing"
-        }
-        res.status(400).json(error);
-        return;
-    } else if (Number(req.params.id) === NaN) {
-        const error: FTError = {
-            code: ERROR_CODES.ERROR_INVALID_REQUEST,
-            message: "Path param id must be number"
-        }
-        res.status(400).json(error);
-        return;
-    }
-
-    const person = await perstMge.readPerson(Number(req.params.id));
-    if (person != null) {
-        res.status(200).json(person.toJSON());
-        return;
-    }
-    res.status(204).json(null);
-});
-
-
-router.post('/', async (req, res) => {
     try {
-        if (req.body.person == null || !isPerson(req.body.person)) {
+        if (req.params.id == null) {
             const error: FTError = {
                 code: ERROR_CODES.ERROR_INVALID_REQUEST,
-                message: "Invalid object in body. Expected type person."
+                message: "Path param id missing"
+            }
+            res.status(400).json(error);
+            return;
+        } else if (Number(req.params.id) === NaN) {
+            const error: FTError = {
+                code: ERROR_CODES.ERROR_INVALID_REQUEST,
+                message: "Path param id must be number"
             }
             res.status(400).json(error);
             return;
         }
 
-        if (req.body.marriages == null || !Array.isArray(req.body.marriages)) {
+        const marriage = await perstMge.readMarriage(Number(req.params.id));
+        if (marriage != null) {
+            res.status(200).json(marriage.toJSON());
+            return;
+        }
+        res.status(204).json(null);
+    } catch (exception) {
+        const error: FTError = {
+            code: ERROR_CODES.ERROR_INTERNAL_SERVER_ERROR,
+            message: exception.message
+        };
+        res.status(500).json(error);
+    }
+});
+
+
+router.post('/', async (req, res) => {
+    try {
+        if (req.body == null || !isMarriage(req.body)) {
             const error: FTError = {
                 code: ERROR_CODES.ERROR_INVALID_REQUEST,
                 message: "Invalid object in body. Expected type marriages."
@@ -64,8 +71,32 @@ router.post('/', async (req, res) => {
             return;
         }
 
-        const person = await perstMge.createPerson(req.body.person as Person);
-        res.status(201).json(person);
+        const marriageReq = req.body as Marriage;
+        if (marriageReq.personId1 == null || marriageReq.personId2 == null) {
+            const error: FTError = {
+                code: ERROR_CODES.ERROR_MARRIED_PERSON_NOT_FOUND,
+                message: `Invalid object in body. Expected type marriages. ${marriageReq.personId1 == null ? "personId1" : "personId2"}`
+            }
+            res.status(400).json(error);
+            return;
+        }
+
+        const marriageP1 = await perstMge.readPerson(marriageReq.personId1);
+        const marriageP2 = await perstMge.readPerson(marriageReq.personId2);
+        if (marriageP1 && marriageP2) {
+            const data = await perstMge.createMarriage({
+                personId1: marriageReq.personId1,
+                personId2: marriageReq.personId2
+            });
+            res.status(201).jsonp(data.toJSON());
+        } else {
+            const error: FTError = {
+                code: ERROR_CODES.ERROR_MARRIED_PERSON_NOT_FOUND,
+                message: `Could not find married person with id:${marriageP1 == null ? marriageReq.personId1 : marriageReq.personId2}`
+            }
+            res.status(400).json(error);
+            return;
+        }
     } catch (execption) {
         const error: FTError = {
             code: ERROR_CODES.ERROR_INTERNAL_SERVER_ERROR,

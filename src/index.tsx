@@ -4,11 +4,16 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import { SnackbarProvider } from 'notistack';
+import { QueryClient, QueryClientProvider } from 'react-query';
+
+const queryClient = new QueryClient();
 
 ReactDOM.render(
     // <React.StrictMode>
     <SnackbarProvider maxSnack={3}>
-        <App />
+        <QueryClientProvider client={queryClient}>
+            <App />
+        </QueryClientProvider>
     </SnackbarProvider>,
     // </React.StrictMode>,
     document.getElementById('root')

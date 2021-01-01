@@ -1,5 +1,7 @@
-import { ModelCtor, Sequelize } from 'sequelize';
-import { Person, PersonAttributes } from '../dbmodels/Person';
+import { ModelCtor, Op, Sequelize } from 'sequelize';
+import { MarriageDB } from '../dbmodels/MarriageDB';
+import { PersonDB } from "../dbmodels/PersonDB";
+import { Marriage, Person, PersonWithId } from '../restapi/Api';
 import { ConfigManager, CONFIG_NAMES } from './Configuration';
 import Logger from './Logger';
 
@@ -10,7 +12,8 @@ export default class PersistanceManager {
     private static instance: PersistanceManager | null = null;
     private constructur() { }
 
-    public personDB: ModelCtor<Person> | null = null;
+    public personDB: ModelCtor<PersonDB> | null = null;
+    public marriageDB: ModelCtor<MarriageDB> | null = null;
 
 
     public static getInstance() {
@@ -33,33 +36,37 @@ export default class PersistanceManager {
             process.exit(1);
         }
 
-        this.personDB = sequelize.define(Person.MODEL_NAME, Person.tableInit());
-        this.personDB.belongsToMany(this.personDB, { as: "spouse", through: 'Married_Person' });
+        this.personDB = sequelize.define(PersonDB.MODEL_NAME, PersonDB.tableInit());
+        this.marriageDB = sequelize.define(MarriageDB.MODEL_NAME, MarriageDB.tableInit());
+
+        this.personDB.hasOne(this.marriageDB, {
+            foreignKey: "personId1",
+        });
+
+        this.personDB.hasOne(this.marriageDB, {
+            foreignKey: "personId2",
+        });
 
         await sequelize.sync({ alter: true, force: true });
 
     }
 
-    public async readAllPersons(): Promise<Person[]> {
+    /** Persons START */
+
+    public async readAllPersons(): Promise<PersonDB[]> {
         const data = await this.personDB!.findAll();
         return data;
     }
 
-    public async createPerson(person: PersonAttributes): Promise<Person | null> {
-        try {
-            const newPerson = this.personDB!.build(person)
-            return await newPerson.save();
-        } catch (error) {
-            log.error("Faild to create person entry", error);
-        }
-        return null;
+    public async createPerson(person: Person): Promise<PersonDB> {
+        return await this.personDB!.create(person);
     }
 
-    public async readPerson(personId: number): Promise<Person | null> {
+    public async readPerson(personId: number): Promise<PersonDB | null> {
         return await this.personDB!.findByPk(personId);
     }
 
-    public async updatePerson(person: PersonAttributes): Promise<Person | null> {
+    public async updatePerson(person: PersonWithId): Promise<PersonDB | null> {
         const personToUpdate = await this.personDB!.findByPk(person.id);
         if (personToUpdate != null) {
             personToUpdate.forename = person.forename;
@@ -85,4 +92,42 @@ export default class PersistanceManager {
         }
         return false;
     }
+
+    /** Persons END */
+
+    /** Meriage START */
+    public async readAllMarriages(): Promise<MarriageDB[]> {
+        const data = await this.marriageDB!.findAll();
+        return data;
+    }
+
+    public async readMarriageByPersonId(personId: number) {
+        const data = await this.marriageDB!.findAll({
+            where: {
+                [Op.or]: [
+                    { personId1: personId },
+                    { personId2: personId }
+                ]
+            }
+        });
+        return data;
+    }
+
+    public async createMarriage(marriage: Marriage): Promise<MarriageDB> {
+        return this.marriageDB!.create(marriage);
+    }
+
+    public async readMarriage(marriageId: number): Promise<MarriageDB | null> {
+        return await this.marriageDB!.findByPk(marriageId);
+    }
+
+    public async deleteMarriage(marriageId: number): Promise<boolean> {
+        const marriageToUpdate = await this.marriageDB!.findByPk(marriageId);
+        if (marriageToUpdate != null) {
+            await marriageToUpdate.destroy();
+            return true;
+        }
+        return false;
+    }
+    /** Meriage END */
 }

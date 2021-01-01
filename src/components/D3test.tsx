@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect, useRef, useState} from 'react';
+import React, { ReactElement, useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
 interface D3testProps {
@@ -30,7 +30,7 @@ export default function D3test(props: D3testProps): ReactElement {
             .append('circle')
             .attr('r', () => 10)
             .attr('cy', 50)
-            .attr('cx', (a,idx: number,c) => {
+            .attr('cx', (a, idx: number, c) => {
                 console.log('Test: ' + JSON.stringify(c));
                 return 50 * idx + 50;
             });
@@ -41,7 +41,7 @@ export default function D3test(props: D3testProps): ReactElement {
                 .data(nodeData)
                 .attr('r', () => 10)
                 .attr('cy', 50)
-                .attr('cx', (a,idx: number,c) => {
+                .attr('cx', (a, idx: number, c) => {
                     x += 1;
                     console.log('Test: ' + JSON.stringify(c));
                     return 50 * idx + x;
@@ -50,7 +50,6 @@ export default function D3test(props: D3testProps): ReactElement {
     };
 
     useEffect(() => {
-        console.log('Triggered draw');
         draw();
     }, [props.data, draw]);
 

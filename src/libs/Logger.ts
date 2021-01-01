@@ -50,15 +50,15 @@ export class Logger {
         }
     }
 
-    public static debug(message: string, meta: object) {
+    public static debug(message: string, meta: object = {}) {
         Logger.getInstance().log(LogLevel.DEBUG, message, meta, undefined);
     }
 
-    public static info(message: string, meta: object) {
+    public static info(message: string, meta: object = {}) {
         Logger.getInstance().log(LogLevel.INFO, message, meta, undefined);
     }
 
-    public static error(message: string, meta: object, error: Error | undefined) {
+    public static error(message: string, meta: object = {}, error: Error | undefined) {
         Logger.getInstance().log(LogLevel.ERROR, message, meta, error);
     }
 }

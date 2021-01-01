@@ -1,35 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import './App.css';
-import { TreeGraphData, TreeGraphNodeData } from './models/TreeGraphNodeData';
 import FamilyTreeGraph from './components/FamilyTreeGraph';
-import { getPersonsFromCSV, getPersonsFromServer, getTreeGraphDataFromCSV, getTreeGraphDataFromServer } from './libs/ParserCSVToPerson';
-import FormDialog from './modals/ModifyPerson';
-import PersonEntry from './models/PersonEntry';
-import CONFIG from './libs/Config'
+// import { getPersonsFromCSV, getPersonsFromServer, getTreeGraphDataFromCSV, getTreeGraphDataFromServer } from './libs/ParserCSVToPerson';
+import {
+    BrowserRouter as Router,
+    Switch,
+    Route,
+} from "react-router-dom";
+import PersonEditPage from './pages/PersonEditPage';
+import PersonUpdatePage from './pages/PersonUpdatePage';
 
 function App() {
-    const [dataset, setDataset] = useState<TreeGraphData>({
-        links: [],
-        nodes: []
-    });
-
-    const [personList, setPersonList] = useState<Map<number, PersonEntry>>(new Map());
-
-    useEffect(() => {
-        async function fetchData() {
-            const newDataSet = await getTreeGraphDataFromServer("http://localhost:3080");
-            setDataset(newDataSet);
-            const persons = await getPersonsFromServer("http://localhost:3080");
-            setPersonList(persons);
-        }
-        fetchData();
-    }, []);
-
     return (
-        <div>
-            <FormDialog personData={personList}></FormDialog>
-            <FamilyTreeGraph width={5000} height={5000} data={dataset} />
-        </div>
+        <Router>
+            <Switch>
+                <Route path="/create">
+                    <PersonEditPage user={null}></PersonEditPage>
+                </Route>
+                <Route path="/edit/:personId">
+                    <PersonUpdatePage></PersonUpdatePage>
+                </Route>
+                <Route path="/">
+                    <FamilyTreeGraph width={5000} height={5000} />
+                </Route>
+            </Switch>
+        </Router>
     );
 }
 

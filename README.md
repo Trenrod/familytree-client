@@ -24,9 +24,15 @@ This project visualises and document the heritage of the families Dorn, Esse and
  - Install backend node modules with `cd server && npm i`
  - Install nodemo globaly `npm i -g nodemon`
 
-## Features
+## Next steps
+ <!-- - [ ] Add redux to handle data -->
+ - [ ] Add react router https://reactrouter.com/web/guides/quick-start
+ - [ ] Add Error pages 
+ - [ ] Edit person
+ - [ ] Delete person
+ - [ ] Add authentication system (read book about OpenID Connect and OAuth 2.0)
 
-### UX
+### UX stecific
 - [x] Visualise a family tree
 - [x] Document basic information about family members
 - [ ] Document general images and mark family members on them
@@ -35,7 +41,7 @@ This project visualises and document the heritage of the families Dorn, Esse and
 - [x] Visual direct relation (Father/Mother/Children)
 - [ ] Edit family member information
 
-### Deployment
+### Deployment specific
 - [ ] Persist in database
 - [ ] Ansible deployment
 

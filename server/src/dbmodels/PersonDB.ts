@@ -1,11 +1,21 @@
-import { Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin, HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin, Model, ModelAttributes, Optional } from 'sequelize';
-import { Person, PersonsWithId, PersonWithId } from '../restapi/Api';
+import { DataTypes, Model, ModelAttributes } from 'sequelize';
+import { Person, PersonWithId } from '../restapi/Api';
 
 export class PersonDB extends Model<Person, PersonWithId> implements PersonWithId {
+    public id?: number;
+    public forename?: string;
+    public lastname?: string;
+    public birthname?: string;
+    public birthdate?: string;
+    public dayOfDeath?: string;
+    public placeOfDeath?: string;
+    public placeOfBirth?: string;
+    public fatherId?: number;
+    public motherId?: number;
+    public avatar?: boolean;
 
     // public readonly createdAt!: Date;
     // public readonly updatedAt!: Date;
-
     public static MODEL_NAME = "Person";
 
     public static tableInit(): ModelAttributes<PersonDB> {
@@ -58,6 +68,6 @@ export class PersonDB extends Model<Person, PersonWithId> implements PersonWithI
                 allowNull: false,
                 defaultValue: false
             }
-        }
+        };
     }
 }

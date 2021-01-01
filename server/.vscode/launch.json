@@ -5,13 +5,47 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
-            "request": "attach",
-            "name": "Node: Nodemon",
-            "processId": "${command:PickProcess}",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "name": "Start server with nodeamon",
+            "program": "${workspaceFolder}/src/app.ts",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
             "restart": true,
-            "port": 9229,
-            "protocol": "inspector",
+            "runtimeExecutable": "nodemon",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Jest Tests",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--inspect-brk",
+                "${workspaceRoot}/node_modules/jest/bin/jest.js",
+                "--runInBand",
+                "--config",
+                "${workspaceRoot}/jest.config.json"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Jest Tests",
+            "program": "${workspaceRoot}\\node_modules\\jest\\bin\\jest.js",
+            "args": [
+                "-i"
+            ],
+            "preLaunchTask": "build",
+            "internalConsoleOptions": "openOnSessionStart",
+            "outFiles": [
+                "${workspaceRoot}/dist/**/*"
+            ]
         }
     ]
 }
