@@ -52,7 +52,6 @@ export async function getTreeGraphDataFromServer(users: UserFieldsFragment[], ma
 }
 
 const parsePeopleToTreeGraphData = function (peoples: PersonEntry[]): TreeGraphData {
-    console.log('Creating tree');
     // Create linked tree
     const nodes: TreeGraphNodeData[] = [];
     const links: TreeGraphLinkData[] = [];

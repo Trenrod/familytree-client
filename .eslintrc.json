@@ -72,7 +72,11 @@
 			"below"
 		],
 		"no-unreachable": "warn",
+		// note you must disable the base rule as it can report incorrect errors
 		"no-use-before-define": "off",
+		"@typescript-eslint/no-use-before-define": [
+			"error"
+		],
 		"no-self-compare": "error",
 		"no-var": "error",
 		"prefer-const": "error",
@@ -85,7 +89,6 @@
 				"ignoreRestSiblings": false
 			}
 		],
-		"@typescript-eslint/no-use-before-define": "error",
 		"@typescript-eslint/no-misused-new": "error",
 		"@typescript-eslint/no-floating-promises": "error",
 		"@typescript-eslint/no-misused-promises": [

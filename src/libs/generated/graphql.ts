@@ -1,28 +1,8 @@
-import { useQuery, UseQueryOptions, useMutation, UseMutationOptions } from 'react-query';
+import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-
-function fetcher<TData, TVariables>(endpoint: string, requestInit: RequestInit, query: string, variables?: TVariables) {
-  return async (): Promise<TData> => {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      ...requestInit,
-      body: JSON.stringify({ query, variables }),
-    });
-
-    const json = await res.json();
-
-    if (json.errors) {
-      const { message } = json.errors[0];
-
-      throw new Error(message);
-    }
-
-    return json.data;
-  }
-}
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -30,18 +10,34 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  Upload: any;
+  DateTime: any;
 };
+
+
 
 export type User = {
   __typename?: 'User';
   id: Scalars['ID'];
   forename: Scalars['String'];
   lastname: Scalars['String'];
-  avatar: Scalars['Boolean'];
+  avatar?: Maybe<Scalars['String']>;
+  birthname?: Maybe<Scalars['String']>;
+  birthdate?: Maybe<Scalars['DateTime']>;
+  dayOfDeath?: Maybe<Scalars['DateTime']>;
+  bio?: Maybe<Scalars['String']>;
   marriages?: Maybe<Array<Maybe<Marriage>>>;
+  marriagesWithUsers?: Maybe<Array<Maybe<User>>>;
   parents?: Maybe<Array<Maybe<User>>>;
   children?: Maybe<Array<Maybe<User>>>;
   places?: Maybe<Array<Maybe<Place>>>;
+};
+
+export type File = {
+  __typename?: 'File';
+  filename: Scalars['String'];
+  mimetype: Scalars['String'];
+  encoding: Scalars['String'];
 };
 
 export type Place = {
@@ -65,6 +61,7 @@ export type Query = {
   findUserById?: Maybe<User>;
   allMarriages?: Maybe<Array<Maybe<Marriage>>>;
   findMarriageById?: Maybe<Marriage>;
+  findAvatarByUserId?: Maybe<File>;
 };
 
 
@@ -75,6 +72,11 @@ export type QueryFindUserByIdArgs = {
 
 export type QueryFindMarriageByIdArgs = {
   id: Scalars['ID'];
+};
+
+
+export type QueryFindAvatarByUserIdArgs = {
+  id?: Maybe<Scalars['ID']>;
 };
 
 export type InputUserId = {
@@ -95,13 +97,20 @@ export type Mutation = {
   updateUser?: Maybe<User>;
   deleteUser?: Maybe<User>;
   createMarriage: Marriage;
+  uploadAvatar: File;
+  uploadImage: File;
+  uploadBio: File;
 };
 
 
 export type MutationCreateUserArgs = {
   forename: Scalars['String'];
   lastname: Scalars['String'];
-  avatar?: Maybe<Scalars['Boolean']>;
+  avatar?: Maybe<Scalars['String']>;
+  birthname?: Maybe<Scalars['String']>;
+  birthdate?: Maybe<Scalars['DateTime']>;
+  dayOfDeath?: Maybe<Scalars['DateTime']>;
+  bio?: Maybe<Scalars['String']>;
   marriages?: Maybe<Array<Maybe<InputMarriageId>>>;
   marriageWithUserId?: Maybe<Array<Maybe<InputMarriageWithUserId>>>;
   parents?: Maybe<Array<Maybe<InputUserId>>>;
@@ -113,7 +122,11 @@ export type MutationUpdateUserArgs = {
   id: Scalars['ID'];
   forename?: Maybe<Scalars['String']>;
   lastname?: Maybe<Scalars['String']>;
-  avatar?: Maybe<Scalars['Boolean']>;
+  avatar?: Maybe<Scalars['String']>;
+  birthname?: Maybe<Scalars['String']>;
+  birthdate?: Maybe<Scalars['DateTime']>;
+  dayOfDeath?: Maybe<Scalars['DateTime']>;
+  bio?: Maybe<Scalars['String']>;
   marriages?: Maybe<Array<Maybe<InputMarriageId>>>;
   marriageWithUserId?: Maybe<Array<Maybe<InputMarriageWithUserId>>>;
   parents?: Maybe<Array<Maybe<InputUserId>>>;
@@ -130,6 +143,25 @@ export type MutationCreateMarriageArgs = {
   users: Array<Maybe<InputUserId>>;
 };
 
+
+export type MutationUploadAvatarArgs = {
+  file: Scalars['Upload'];
+  userId: Scalars['ID'];
+};
+
+
+export type MutationUploadImageArgs = {
+  file: Scalars['Upload'];
+  userId: Scalars['ID'];
+  description?: Maybe<Scalars['String']>;
+};
+
+
+export type MutationUploadBioArgs = {
+  file: Scalars['Upload'];
+  userId: Scalars['ID'];
+};
+
 export type MarriageFieldsFragment = (
   { __typename?: 'Marriage' }
   & Pick<Marriage, 'id'>
@@ -141,7 +173,7 @@ export type MarriageFieldsFragment = (
 
 export type UserFieldsFragment = (
   { __typename?: 'User' }
-  & Pick<User, 'id' | 'forename' | 'lastname'>
+  & Pick<User, 'id' | 'avatar' | 'forename' | 'lastname' | 'birthname' | 'birthdate' | 'dayOfDeath' | 'bio'>
   & { parents?: Maybe<Array<Maybe<(
     { __typename?: 'User' }
     & Pick<User, 'id'>
@@ -151,7 +183,19 @@ export type UserFieldsFragment = (
   )>>>, marriages?: Maybe<Array<Maybe<(
     { __typename?: 'Marriage' }
     & Pick<Marriage, 'id'>
+    & { users: Array<Maybe<(
+      { __typename?: 'User' }
+      & Pick<User, 'id'>
+    )>> }
+  )>>>, marriagesWithUsers?: Maybe<Array<Maybe<(
+    { __typename?: 'User' }
+    & Pick<User, 'id'>
   )>>> }
+);
+
+export type FileFieldsFragment = (
+  { __typename?: 'File' }
+  & Pick<File, 'filename' | 'mimetype' | 'encoding'>
 );
 
 export type FindUserByIdQueryVariables = Exact<{
@@ -176,6 +220,19 @@ export type AllMarriagesQuery = (
     { __typename?: 'Marriage' }
     & MarriageFieldsFragment
   )>>> }
+);
+
+export type FindAvatarByUserIdQueryVariables = Exact<{
+  id: Scalars['ID'];
+}>;
+
+
+export type FindAvatarByUserIdQuery = (
+  { __typename?: 'Query' }
+  & { findAvatarByUserId?: Maybe<(
+    { __typename?: 'File' }
+    & FileFieldsFragment
+  )> }
 );
 
 export type AllUsersQueryVariables = Exact<{ [key: string]: never; }>;
@@ -205,6 +262,10 @@ export type FindMarriageByIdQuery = (
 export type CreateUserMutationVariables = Exact<{
   forename: Scalars['String'];
   lastname: Scalars['String'];
+  birthname?: Maybe<Scalars['String']>;
+  birthdate?: Maybe<Scalars['DateTime']>;
+  dayOfDeath?: Maybe<Scalars['DateTime']>;
+  bio?: Maybe<Scalars['String']>;
   marriages?: Maybe<Array<Maybe<InputMarriageId>>>;
   marriageWithUserId?: Maybe<Array<Maybe<InputMarriageWithUserId>>>;
   parents?: Maybe<Array<Maybe<InputUserId>>>;
@@ -237,6 +298,10 @@ export type UpdateUserMutationVariables = Exact<{
   id: Scalars['ID'];
   forename: Scalars['String'];
   lastname: Scalars['String'];
+  birthname?: Maybe<Scalars['String']>;
+  birthdate?: Maybe<Scalars['DateTime']>;
+  dayOfDeath?: Maybe<Scalars['DateTime']>;
+  bio?: Maybe<Scalars['String']>;
   marriages?: Maybe<Array<Maybe<InputMarriageId>>>;
   marriageWithUserId?: Maybe<Array<Maybe<InputMarriageWithUserId>>>;
   parents?: Maybe<Array<Maybe<InputUserId>>>;
@@ -265,194 +330,30 @@ export type DeleteUserMutation = (
   )> }
 );
 
-export const MarriageFieldsFragmentDoc = `
-    fragment MarriageFields on Marriage {
-  id
-  users {
-    id
-  }
-}
-    `;
-export const UserFieldsFragmentDoc = `
-    fragment UserFields on User {
-  id
-  forename
-  lastname
-  parents {
-    id
-  }
-  children {
-    id
-  }
-  marriages {
-    id
-  }
-}
-    `;
-export const FindUserByIdDocument = `
-    query findUserById($id: ID!) {
-  findUserById(id: $id) {
-    ...UserFields
-  }
-}
-    ${UserFieldsFragmentDoc}`;
-export const useFindUserByIdQuery = <
-      TData = FindUserByIdQuery,
-      TError = unknown
-    >(
-      dataSource: { endpoint: string, fetchParams?: RequestInit }, 
-      variables: FindUserByIdQueryVariables, 
-      options?: UseQueryOptions<FindUserByIdQuery, TError, TData>
-    ) => 
-    useQuery<FindUserByIdQuery, TError, TData>(
-      ['findUserById', variables],
-      fetcher<FindUserByIdQuery, FindUserByIdQueryVariables>(dataSource.endpoint, dataSource.fetchParams || {}, FindUserByIdDocument, variables),
-      options
-    );
-export const AllMarriagesDocument = `
-    query allMarriages {
-  allMarriages {
-    ...MarriageFields
-  }
-}
-    ${MarriageFieldsFragmentDoc}`;
-export const useAllMarriagesQuery = <
-      TData = AllMarriagesQuery,
-      TError = unknown
-    >(
-      dataSource: { endpoint: string, fetchParams?: RequestInit }, 
-      variables?: AllMarriagesQueryVariables, 
-      options?: UseQueryOptions<AllMarriagesQuery, TError, TData>
-    ) => 
-    useQuery<AllMarriagesQuery, TError, TData>(
-      ['allMarriages', variables],
-      fetcher<AllMarriagesQuery, AllMarriagesQueryVariables>(dataSource.endpoint, dataSource.fetchParams || {}, AllMarriagesDocument, variables),
-      options
-    );
-export const AllUsersDocument = `
-    query allUsers {
-  allUsers {
-    ...UserFields
-  }
-}
-    ${UserFieldsFragmentDoc}`;
-export const useAllUsersQuery = <
-      TData = AllUsersQuery,
-      TError = unknown
-    >(
-      dataSource: { endpoint: string, fetchParams?: RequestInit }, 
-      variables?: AllUsersQueryVariables, 
-      options?: UseQueryOptions<AllUsersQuery, TError, TData>
-    ) => 
-    useQuery<AllUsersQuery, TError, TData>(
-      ['allUsers', variables],
-      fetcher<AllUsersQuery, AllUsersQueryVariables>(dataSource.endpoint, dataSource.fetchParams || {}, AllUsersDocument, variables),
-      options
-    );
-export const FindMarriageByIdDocument = `
-    query findMarriageById($id: ID!) {
-  findMarriageById(id: $id) {
-    ...MarriageFields
-  }
-}
-    ${MarriageFieldsFragmentDoc}`;
-export const useFindMarriageByIdQuery = <
-      TData = FindMarriageByIdQuery,
-      TError = unknown
-    >(
-      dataSource: { endpoint: string, fetchParams?: RequestInit }, 
-      variables: FindMarriageByIdQueryVariables, 
-      options?: UseQueryOptions<FindMarriageByIdQuery, TError, TData>
-    ) => 
-    useQuery<FindMarriageByIdQuery, TError, TData>(
-      ['findMarriageById', variables],
-      fetcher<FindMarriageByIdQuery, FindMarriageByIdQueryVariables>(dataSource.endpoint, dataSource.fetchParams || {}, FindMarriageByIdDocument, variables),
-      options
-    );
-export const CreateUserDocument = `
-    mutation createUser($forename: String!, $lastname: String!, $marriages: [InputMarriageId], $marriageWithUserId: [InputMarriageWithUserId], $parents: [InputUserId], $children: [InputUserId]) {
-  createUser(
-    forename: $forename
-    lastname: $lastname
-    marriages: $marriages
-    marriageWithUserId: $marriageWithUserId
-    parents: $parents
-    children: $children
-  ) {
-    ...UserFields
-  }
-}
-    ${UserFieldsFragmentDoc}`;
-export const useCreateUserMutation = <
-      TError = unknown,
-      TContext = unknown
-    >(
-      dataSource: { endpoint: string, fetchParams?: RequestInit }, 
-      options?: UseMutationOptions<CreateUserMutation, TError, CreateUserMutationVariables, TContext>
-    ) => 
-    useMutation<CreateUserMutation, TError, CreateUserMutationVariables, TContext>(
-      (variables?: CreateUserMutationVariables) => fetcher<CreateUserMutation, CreateUserMutationVariables>(dataSource.endpoint, dataSource.fetchParams || {}, CreateUserDocument, variables)(),
-      options
-    );
-export const CreateMarriageDocument = `
-    mutation createMarriage($users: [InputUserId]!) {
-  createMarriage(users: $users) {
-    ...MarriageFields
-  }
-}
-    ${MarriageFieldsFragmentDoc}`;
-export const useCreateMarriageMutation = <
-      TError = unknown,
-      TContext = unknown
-    >(
-      dataSource: { endpoint: string, fetchParams?: RequestInit }, 
-      options?: UseMutationOptions<CreateMarriageMutation, TError, CreateMarriageMutationVariables, TContext>
-    ) => 
-    useMutation<CreateMarriageMutation, TError, CreateMarriageMutationVariables, TContext>(
-      (variables?: CreateMarriageMutationVariables) => fetcher<CreateMarriageMutation, CreateMarriageMutationVariables>(dataSource.endpoint, dataSource.fetchParams || {}, CreateMarriageDocument, variables)(),
-      options
-    );
-export const UpdateUserDocument = `
-    mutation updateUser($id: ID!, $forename: String!, $lastname: String!, $marriages: [InputMarriageId], $marriageWithUserId: [InputMarriageWithUserId], $parents: [InputUserId], $children: [InputUserId]) {
-  updateUser(
-    id: $id
-    forename: $forename
-    lastname: $lastname
-    marriages: $marriages
-    marriageWithUserId: $marriageWithUserId
-    parents: $parents
-    children: $children
-  ) {
-    ...UserFields
-  }
-}
-    ${UserFieldsFragmentDoc}`;
-export const useUpdateUserMutation = <
-      TError = unknown,
-      TContext = unknown
-    >(
-      dataSource: { endpoint: string, fetchParams?: RequestInit }, 
-      options?: UseMutationOptions<UpdateUserMutation, TError, UpdateUserMutationVariables, TContext>
-    ) => 
-    useMutation<UpdateUserMutation, TError, UpdateUserMutationVariables, TContext>(
-      (variables?: UpdateUserMutationVariables) => fetcher<UpdateUserMutation, UpdateUserMutationVariables>(dataSource.endpoint, dataSource.fetchParams || {}, UpdateUserDocument, variables)(),
-      options
-    );
-export const DeleteUserDocument = `
-    mutation deleteUser($id: ID!) {
-  deleteUser(id: $id) {
-    ...UserFields
-  }
-}
-    ${UserFieldsFragmentDoc}`;
-export const useDeleteUserMutation = <
-      TError = unknown,
-      TContext = unknown
-    >(
-      dataSource: { endpoint: string, fetchParams?: RequestInit }, 
-      options?: UseMutationOptions<DeleteUserMutation, TError, DeleteUserMutationVariables, TContext>
-    ) => 
-    useMutation<DeleteUserMutation, TError, DeleteUserMutationVariables, TContext>(
-      (variables?: DeleteUserMutationVariables) => fetcher<DeleteUserMutation, DeleteUserMutationVariables>(dataSource.endpoint, dataSource.fetchParams || {}, DeleteUserDocument, variables)(),
-      options
-    );
+export type UploadAvatarMutationVariables = Exact<{
+  file: Scalars['Upload'];
+  userId: Scalars['ID'];
+}>;
+
+
+export type UploadAvatarMutation = (
+  { __typename?: 'Mutation' }
+  & { uploadAvatar: (
+    { __typename?: 'File' }
+    & FileFieldsFragment
+  ) }
+);
+
+export const MarriageFieldsFragmentDoc: DocumentNode<MarriageFieldsFragment, unknown> = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"MarriageFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Marriage"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"users"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]};
+export const UserFieldsFragmentDoc: DocumentNode<UserFieldsFragment, unknown> = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"User"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"forename"}},{"kind":"Field","name":{"kind":"Name","value":"lastname"}},{"kind":"Field","name":{"kind":"Name","value":"birthname"}},{"kind":"Field","name":{"kind":"Name","value":"birthdate"}},{"kind":"Field","name":{"kind":"Name","value":"dayOfDeath"}},{"kind":"Field","name":{"kind":"Name","value":"bio"}},{"kind":"Field","name":{"kind":"Name","value":"parents"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"children"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"marriages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"users"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"marriagesWithUsers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]};
+export const FileFieldsFragmentDoc: DocumentNode<FileFieldsFragment, unknown> = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FileFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"File"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"filename"}},{"kind":"Field","name":{"kind":"Name","value":"mimetype"}},{"kind":"Field","name":{"kind":"Name","value":"encoding"}}]}}]};
+export const FindUserByIdDocument: DocumentNode<FindUserByIdQuery, FindUserByIdQueryVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"findUserById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"findUserById"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserFields"}}]}}]}},...UserFieldsFragmentDoc.definitions]};
+export const AllMarriagesDocument: DocumentNode<AllMarriagesQuery, AllMarriagesQueryVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"allMarriages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"allMarriages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"MarriageFields"}}]}}]}},...MarriageFieldsFragmentDoc.definitions]};
+export const FindAvatarByUserIdDocument: DocumentNode<FindAvatarByUserIdQuery, FindAvatarByUserIdQueryVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"findAvatarByUserId"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"findAvatarByUserId"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"FileFields"}}]}}]}},...FileFieldsFragmentDoc.definitions]};
+export const AllUsersDocument: DocumentNode<AllUsersQuery, AllUsersQueryVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"allUsers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"allUsers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserFields"}}]}}]}},...UserFieldsFragmentDoc.definitions]};
+export const FindMarriageByIdDocument: DocumentNode<FindMarriageByIdQuery, FindMarriageByIdQueryVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"findMarriageById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"findMarriageById"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"MarriageFields"}}]}}]}},...MarriageFieldsFragmentDoc.definitions]};
+export const CreateUserDocument: DocumentNode<CreateUserMutation, CreateUserMutationVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createUser"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"forename"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lastname"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"birthname"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"birthdate"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"DateTime"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dayOfDeath"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"DateTime"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"bio"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"marriages"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InputMarriageId"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"marriageWithUserId"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InputMarriageWithUserId"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"parents"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InputUserId"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"children"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InputUserId"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createUser"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"forename"},"value":{"kind":"Variable","name":{"kind":"Name","value":"forename"}}},{"kind":"Argument","name":{"kind":"Name","value":"lastname"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lastname"}}},{"kind":"Argument","name":{"kind":"Name","value":"birthname"},"value":{"kind":"Variable","name":{"kind":"Name","value":"birthname"}}},{"kind":"Argument","name":{"kind":"Name","value":"birthdate"},"value":{"kind":"Variable","name":{"kind":"Name","value":"birthdate"}}},{"kind":"Argument","name":{"kind":"Name","value":"dayOfDeath"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dayOfDeath"}}},{"kind":"Argument","name":{"kind":"Name","value":"bio"},"value":{"kind":"Variable","name":{"kind":"Name","value":"bio"}}},{"kind":"Argument","name":{"kind":"Name","value":"marriages"},"value":{"kind":"Variable","name":{"kind":"Name","value":"marriages"}}},{"kind":"Argument","name":{"kind":"Name","value":"marriageWithUserId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"marriageWithUserId"}}},{"kind":"Argument","name":{"kind":"Name","value":"parents"},"value":{"kind":"Variable","name":{"kind":"Name","value":"parents"}}},{"kind":"Argument","name":{"kind":"Name","value":"children"},"value":{"kind":"Variable","name":{"kind":"Name","value":"children"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserFields"}}]}}]}},...UserFieldsFragmentDoc.definitions]};
+export const CreateMarriageDocument: DocumentNode<CreateMarriageMutation, CreateMarriageMutationVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createMarriage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"users"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InputUserId"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createMarriage"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"users"},"value":{"kind":"Variable","name":{"kind":"Name","value":"users"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"MarriageFields"}}]}}]}},...MarriageFieldsFragmentDoc.definitions]};
+export const UpdateUserDocument: DocumentNode<UpdateUserMutation, UpdateUserMutationVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateUser"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"forename"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lastname"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"birthname"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"birthdate"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"DateTime"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"dayOfDeath"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"DateTime"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"bio"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"marriages"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InputMarriageId"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"marriageWithUserId"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InputMarriageWithUserId"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"parents"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InputUserId"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"children"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InputUserId"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateUser"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"forename"},"value":{"kind":"Variable","name":{"kind":"Name","value":"forename"}}},{"kind":"Argument","name":{"kind":"Name","value":"lastname"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lastname"}}},{"kind":"Argument","name":{"kind":"Name","value":"birthname"},"value":{"kind":"Variable","name":{"kind":"Name","value":"birthname"}}},{"kind":"Argument","name":{"kind":"Name","value":"birthdate"},"value":{"kind":"Variable","name":{"kind":"Name","value":"birthdate"}}},{"kind":"Argument","name":{"kind":"Name","value":"dayOfDeath"},"value":{"kind":"Variable","name":{"kind":"Name","value":"dayOfDeath"}}},{"kind":"Argument","name":{"kind":"Name","value":"bio"},"value":{"kind":"Variable","name":{"kind":"Name","value":"bio"}}},{"kind":"Argument","name":{"kind":"Name","value":"marriages"},"value":{"kind":"Variable","name":{"kind":"Name","value":"marriages"}}},{"kind":"Argument","name":{"kind":"Name","value":"marriageWithUserId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"marriageWithUserId"}}},{"kind":"Argument","name":{"kind":"Name","value":"parents"},"value":{"kind":"Variable","name":{"kind":"Name","value":"parents"}}},{"kind":"Argument","name":{"kind":"Name","value":"children"},"value":{"kind":"Variable","name":{"kind":"Name","value":"children"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserFields"}}]}}]}},...UserFieldsFragmentDoc.definitions]};
+export const DeleteUserDocument: DocumentNode<DeleteUserMutation, DeleteUserMutationVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"deleteUser"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteUser"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserFields"}}]}}]}},...UserFieldsFragmentDoc.definitions]};
+export const UploadAvatarDocument: DocumentNode<UploadAvatarMutation, UploadAvatarMutationVariables> = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"uploadAvatar"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"file"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Upload"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uploadAvatar"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"file"},"value":{"kind":"Variable","name":{"kind":"Name","value":"file"}}},{"kind":"Argument","name":{"kind":"Name","value":"userId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"FileFields"}}]}}]}},...FileFieldsFragmentDoc.definitions]};
