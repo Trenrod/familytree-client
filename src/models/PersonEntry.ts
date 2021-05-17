@@ -1,13 +1,13 @@
-import { IPersonEntry } from "./IPersonEntry";
+import { IPersonAPIEntry } from "./IPersonAPIEntry";
 
 export interface IMarker {
     isDirectRelation: 'self' | 'parent' | 'child' | 'silbling' | null
     isHighlighted: boolean
 };
 
-export default class PersonEntry implements IPersonEntry {
+export default class PersonEntry implements IPersonAPIEntry {
     birthdate?: Date | null;
-    birthName?: string | null;
+    birthname?: string | null;
     dayOfDeath?: Date | null;
     forename?: string | null;
     id: number | null;
@@ -30,16 +30,20 @@ export default class PersonEntry implements IPersonEntry {
         this.avatar = dataObj.avatar;
         this.birthdate = dataObj.birthdate;
         this.bio = dataObj.bio;
-        this.birthName = dataObj.birthname;
+        this.birthname = dataObj.birthname;
         this.dayOfDeath = dataObj.dayofdeath;
-        this.parents = dataObj.parents != null ? dataObj.parents.map(parent => parseInt(parent.id)) : [];
+        this.parents = dataObj.parents != null
+            ? dataObj.parents
+            : [];
         this.children = dataObj.children != null ? dataObj.children.map(child => parseInt(child.id)) : [];
-        this.marriages = dataObj.marriages != null ? dataObj.marriages.map(marriage => {
-            return marriage.id
-        }) : [];
-        this.marriagesWithUsers = dataObj.marriagesWithUsers != null ? dataObj.marriagesWithUsers.map(marriagesWithUsers => {
-            return marriagesWithUsers.id
-        }) : [];
+        this.marriages = dataObj.marriages != null
+            ? dataObj.marriages
+            : [];
+        this.marriagesWithUsers = dataObj.marriagesWithUsers != null
+            ? dataObj.marriagesWithUsers.map(marriagesWithUsers => {
+                return marriagesWithUsers.id
+            })
+            : [];
         this.placeOfBirth = dataObj.placeofbirth;
         this.placeOfDeath = dataObj.placeofdeath;
         this.markers = {
@@ -55,5 +59,25 @@ export default class PersonEntry implements IPersonEntry {
     public setForename(value: string): PersonEntry {
         this.lastname = value;
         return this;
+    }
+
+    public toAPI(): IPersonAPIEntry {
+        return {
+            birthdate: this.birthdate,
+            birthname: this.birthname,
+            dayOfDeath: this.dayOfDeath,
+            forename: this.forename,
+            id: this.id,
+            avatar: this.avatar,
+            bio: this.bio,
+            lastname: this.lastname,
+            marriages: this.marriages,
+            parents: this.parents,
+            children: this.children,
+            placeOfBirth: this.placeOfBirth,
+            placeOfDeath: this.placeOfDeath,
+            gender: this.gender,
+            markers: this.markers
+        };
     }
 }

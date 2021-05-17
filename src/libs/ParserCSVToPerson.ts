@@ -1,14 +1,10 @@
 import PersonEntry from '../models/PersonEntry';
 import { TreeGraphNodeData, TreeGraphLinkData, TreeGraphData } from '../models/TreeGraphNodeData';
-import Axios from 'axios';
-import * as csv from 'fast-csv';
-import { AllUsersQuery, Marriage, MarriageFieldsFragment, User, UserFieldsFragment } from './generated/graphql';
-import { link } from 'fs';
 
-export async function getPersonsFromServer(users: UserFieldsFragment[]): Promise<Map<number, PersonEntry> | null> {
+export async function getPersonsFromServer(users: any[]): Promise<Map<number, PersonEntry> | null> {
     try {
         const peopleMap: Map<number, PersonEntry> = new Map<number, PersonEntry>();
-        users.forEach((user: UserFieldsFragment) => {
+        users.forEach((user: any) => {
             const person = new PersonEntry(user);
             peopleMap.set(person.id, person);
         });
@@ -19,30 +15,17 @@ export async function getPersonsFromServer(users: UserFieldsFragment[]): Promise
     return null;
 }
 
-export async function getTreeGraphDataFromServer(users: UserFieldsFragment[], marriages: MarriageFieldsFragment[]): Promise<TreeGraphData | null> {
+export function getTreeGraphDataFromServer(personMap: Map<number, PersonEntry>): TreeGraphData | null {
     try {
-        const marriageMap = new Map<string, number[]>();
-        marriages.forEach((marriage: MarriageFieldsFragment) => {
-            marriageMap.set(marriage.id, marriage.users.map((user) => parseInt(user.id)));
+        const marriageMap = new Map<number, number[]>();
+        // Create marriages list
+        personMap.forEach((person: PersonEntry, personId: number) => {
+            marriageMap.set(personId, person.marriages);
         });
 
         const peoples: PersonEntry[] = [];
-        users.forEach((user: UserFieldsFragment) => {
-            let newUserObj: any = Object.assign({}, user);
-            const userIds = [];
-            for (const marriage of user.marriages) {
-                const tmpUserIds = marriageMap.get(marriage.id).map((userid) => userid);
-                tmpUserIds.forEach(userId => {
-                    if (userId !== parseInt(user.id)) {
-                        userIds.push({ id: userId });
-                    }
-                });
-            }
-
-            newUserObj = Object.assign(newUserObj, {
-                marriages: userIds
-            });
-            peoples.push(new PersonEntry(newUserObj));
+        personMap.forEach((person: PersonEntry, personId: number) => {
+            peoples.push(person);
         });
         return parsePeopleToTreeGraphData(peoples);
     } catch (error) {

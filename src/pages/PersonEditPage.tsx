@@ -9,18 +9,20 @@ import DateFnsUtils from '@date-io/date-fns';
 import {
     KeyboardDatePicker,
 } from '@material-ui/pickers';
-import { useMutation, useQuery } from '@apollo/client';
-import { IPersonEntry } from '../models/IPersonEntry';
+import { IPersonAPIEntry } from '../models/IPersonAPIEntry';
 import { useSnackbar } from 'notistack';
 import { Logger } from '../libs/Logger';
 import {
     useHistory
 } from "react-router-dom";
-import { UploadAvatarDocument, InputMarriageId, InputUserId, UserFieldsFragment, CreateUserDocument, UpdateUserDocument, DeleteUserDocument, AllUsersDocument } from '../libs/generated/graphql';
 import Config from '../libs/Config';
 import unified from 'unified';
 import parse from 'remark-parse';
 import remark2react from 'remark-react';
+import { useMutation, useQuery } from 'react-query';
+import queryConstants from '../libs/queryConstants';
+import { apiCallCreatePerson, apiCallDeletePerson, apiCallGetPersons, apiCallUpdatePerson } from '../libs/api';
+import PersonEntry from '../models/PersonEntry';
 
 enum EnumShowInfo {
     PROFILE,
@@ -61,7 +63,7 @@ const useStyles = makeStyles(() =>
 );
 
 interface IUserMapItem {
-    id: String,
+    id: number,
     forename: String,
     lastname: String,
     birthday: Date
@@ -80,7 +82,7 @@ const MenuProps = {
 
 
 interface ModifyPersonProps {
-    user: IPersonEntry | null
+    user: IPersonAPIEntry | null
 }
 
 export default function PersonEditPage(props: ModifyPersonProps): ReactElement {
@@ -91,45 +93,51 @@ export default function PersonEditPage(props: ModifyPersonProps): ReactElement {
 
     const [showProfileOrBio, setShowProfileOrBio] = useState<EnumShowInfo>(EnumShowInfo.PROFILE);
 
-    const [createPerson, setCreatePerson] = React.useState<IPersonEntry>({
+    const [createPerson, setCreatePerson] = React.useState<IPersonAPIEntry>({
         id: props.user?.id,
         forename: props.user?.forename || "",
         lastname: props.user?.lastname || "",
         birthdate: props.user?.birthdate || null,
-        birthName: props.user?.birthName || "",
+        birthname: props.user?.birthname || "",
         dayOfDeath: props.user?.dayOfDeath || null,
+        children: [],
         bio: props.user?.bio || null,
         avatar: props.user?.avatar || null,
         parents: props.user?.parents ?? [],
-        children: props.user?.children ?? [],
         marriages: props.user?.marriages ?? [],
-        marriagesWithUsers: props.user?.marriagesWithUsers ?? [],
         placeOfBirth: props.user?.placeOfBirth ?? null,
         placeOfDeath: props.user?.placeOfDeath ?? null,
         gender: null,
         markers: null
     });
 
+    const mutateCreatePerson = useMutation<PersonEntry, Error, IPersonAPIEntry>(queryConstants.CREATE_PERSON,
+        (createPerson: IPersonAPIEntry) => apiCallCreatePerson(createPerson)
+    );
 
-    const [createUserMutation, createUser] = useMutation(CreateUserDocument);
-    const [updateUserMutation, updateUser] = useMutation(UpdateUserDocument);
-    const [deleteUserMutation] = useMutation(DeleteUserDocument);
+    const mutateUpdatePerson = useMutation<PersonEntry, Error, IPersonAPIEntry>(queryConstants.UPDATE_PERSON,
+        (updatePerson: IPersonAPIEntry) => apiCallUpdatePerson(updatePerson)
+    );
 
-    const allUsers = useQuery(AllUsersDocument);
+    const mutateDeletePerson = useMutation<PersonEntry, Error, { id: number }>(queryConstants.DELETE_PERSON,
+        (deletePerson: { id: number }) => apiCallDeletePerson(deletePerson.id)
+    );
+
+    const allPersons = useQuery<Map<number, PersonEntry>, Error>(queryConstants.GET_PERSONS, apiCallGetPersons);
 
     useEffect(() => {
-        if (createUser.error) {
-            Logger.error("Failed to store/update", { error: createUser.error }, null)
-            enqueueSnackbar(`Failed to create. ${createUser.error.toString()}`, {
+        if (mutateCreatePerson.error) {
+            Logger.error("Failed to store/update", { error: mutateCreatePerson.error }, null)
+            enqueueSnackbar(`Failed to create. ${mutateCreatePerson.error.toString()}`, {
                 variant: "error"
             });
-        } else if (updateUser.error) {
-            Logger.error("Failed to store/update", { error: updateUser.error }, null)
-            enqueueSnackbar(`Failed to update. ${updateUser.error.toString()}`, {
+        } else if (mutateUpdatePerson.error) {
+            Logger.error("Failed to store/update", { error: mutateUpdatePerson.error }, null)
+            enqueueSnackbar(`Failed to update. ${mutateUpdatePerson.error.toString()}`, {
                 variant: "error"
             });
         }
-    }, [createUser.data, updateUser.data]);
+    }, [mutateCreatePerson, mutateUpdatePerson]);
 
     const changeBioContent = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setCreatePerson({ ...createPerson, bio: event.target.value });
@@ -138,36 +146,31 @@ export default function PersonEditPage(props: ModifyPersonProps): ReactElement {
     const handleCreate = async () => {
         try {
             if (createPerson.id) {
-                await updateUserMutation({
-                    variables: {
-                        id: createPerson.id.toString(10),
-                        bio: createPerson.bio,
-                        forename: createPerson.forename,
-                        lastname: createPerson.lastname,
-                        birthname: createPerson.birthName,
-                        birthdate: createPerson.birthdate,
-                        dayOfDeath: createPerson.dayOfDeath,
-                        children: createPerson.children.map((childId): InputUserId => { return { id: childId.toString() } }),
-                        parents: createPerson.parents.map((parentId): InputUserId => { return { id: parentId.toString() } }),
-                        marriages: createPerson.marriages.map((marriageId): InputMarriageId => { return { id: marriageId.toString() } }),
-                        marriageWithUserId: createPerson.marriagesWithUsers.map((marriageId): InputMarriageId => { return { id: marriageId.toString() } }),
-                    }
+                await mutateUpdatePerson.mutateAsync({
+                    id: createPerson.id,
+                    bio: createPerson.bio,
+                    forename: createPerson.forename,
+                    lastname: createPerson.lastname,
+                    birthname: createPerson.birthname,
+                    birthdate: createPerson.birthdate,
+                    dayOfDeath: createPerson.dayOfDeath,
+                    parents: createPerson.parents.map((id: number): number => id),
+                    marriages: createPerson.marriages.map((id: number): number => id),
+                    children: []
                 });
                 history.goBack();
             } else {
-                await createUserMutation({
-                    variables: {
-                        forename: createPerson.forename,
-                        lastname: createPerson.lastname,
-                        birthname: createPerson.birthName,
-                        birthdate: createPerson.birthdate,
-                        bio: createPerson.bio,
-                        dayOfDeath: createPerson.dayOfDeath,
-                        children: createPerson.children.map((childId): InputUserId => { return { id: childId.toString() } }),
-                        parents: createPerson.parents.map((parentId): InputUserId => { return { id: parentId.toString() } }),
-                        marriages: createPerson.marriages.map((marriageId): InputMarriageId => { return { id: marriageId.toString() } }),
-                        marriageWithUserId: createPerson.marriagesWithUsers.map((marriageId): InputMarriageId => { return { id: marriageId.toString() } }),
-                    }
+                await mutateCreatePerson.mutateAsync({
+                    id: null,
+                    forename: createPerson.forename,
+                    lastname: createPerson.lastname,
+                    birthname: createPerson.birthname,
+                    birthdate: createPerson.birthdate,
+                    bio: createPerson.bio,
+                    dayOfDeath: createPerson.dayOfDeath,
+                    parents: createPerson.parents.map((id: number): number => id),
+                    marriages: createPerson.marriages.map((id: number): number => id),
+                    children: []
                 });
             }
         } catch (error) {
@@ -178,16 +181,16 @@ export default function PersonEditPage(props: ModifyPersonProps): ReactElement {
         }
     }
 
-    const [mutate] = useMutation(UploadAvatarDocument);
-    const onAvatarImageFileSelect = async (event) => {
-        const {
-            target: {
-                validity,
-                files: [file],
-            } } = event;
-        const result = await mutate({ variables: { file, userId: createPerson.id.toString() } });
-        setCreatePerson({ ...createPerson, avatar: result.data.uploadAvatar.filename });
-    }
+    // const [mutate] = useMutation(UploadAvatarDocument);
+    // const onAvatarImageFileSelect = async (event) => {
+    //     const {
+    //         target: {
+    //             validity,
+    //             files: [file],
+    //         } } = event;
+    //     const result = await mutate({ variables: { file, userId: createPerson.id.toString() } });
+    //     setCreatePerson({ ...createPerson, avatar: result.data.uploadAvatar.filename });
+    // }
 
     const handleCancel = () => {
         history.goBack();
@@ -198,8 +201,8 @@ export default function PersonEditPage(props: ModifyPersonProps): ReactElement {
     }
 
     const handleDelete = async () => {
-        await deleteUserMutation({
-            variables: { id: createPerson.id.toString() }
+        await mutateDeletePerson.mutateAsync({
+            id: createPerson.id
         });
         history.goBack();
     }
@@ -214,18 +217,18 @@ export default function PersonEditPage(props: ModifyPersonProps): ReactElement {
 
     let userMap = new Map<number, IUserMapItem>();
     let peopleOptionList = [];
-    if (!allUsers.loading && allUsers.data) {
-        allUsers.data.allUsers.forEach((value: UserFieldsFragment) => {
+    if (!allPersons.isLoading && allPersons.data) {
+        allPersons.data.forEach((person: IPersonAPIEntry) => {
             let year = "";
-            if (value.birthdate) {
-                year = `(*${(new Date(value.birthdate)).getFullYear().toString()})`;
+            if (person.birthdate) {
+                year = `(*${(new Date(person.birthdate)).getFullYear().toString()})`;
             }
-            peopleOptionList.push(<MenuItem key={`item_key_${value.id}`} value={value.id.toString()}>{`(${value.id}) ${value.forename} ${value.lastname} ${year}`}</MenuItem>);
-            userMap.set(parseInt(value.id), {
-                id: value.id,
-                forename: value.forename,
-                lastname: value.lastname,
-                birthday: value.birthdate
+            peopleOptionList.push(<MenuItem key={`item_key_${person.id}`} value={person.id.toString()}>{`(${person.id}) ${person.forename} ${person.lastname} ${year}`}</MenuItem>);
+            userMap.set(person.id, {
+                id: person.id,
+                forename: person.forename,
+                lastname: person.lastname,
+                birthday: person.birthdate
             })
         });
     }
@@ -308,7 +311,7 @@ export default function PersonEditPage(props: ModifyPersonProps): ReactElement {
                                         id="raised-button-file"
                                         type="file"
                                         disabled={createPerson.id == null}
-                                        onChange={onAvatarImageFileSelect}
+                                    // onChange={onAvatarImageFileSelect}
                                     />
                                     <label htmlFor="raised-button-file">
                                         <Button variant="contained" disabled={createPerson.id == null} component="span" className={classes.inputButton}>
@@ -335,9 +338,9 @@ export default function PersonEditPage(props: ModifyPersonProps): ReactElement {
                                     <FormGroup row={true} >
                                         <TextField id="standard-name" label="Birthname" className={classes.inputstyle}
                                             onChange={(event) => {
-                                                setCreatePerson({ ...createPerson, birthName: event.target.value });
+                                                setCreatePerson({ ...createPerson, birthname: event.target.value });
                                             }}
-                                            value={createPerson.birthName}
+                                            value={createPerson.birthname}
                                         />
                                     </FormGroup>
                                     <FormGroup row={true} style={{ justifyContent: 'space-between' }}>
@@ -408,56 +411,12 @@ export default function PersonEditPage(props: ModifyPersonProps): ReactElement {
                                     </FormGroup>
                                     <FormGroup row={true} >
                                         <FormControl className={classes.inputstyle}>
-                                            <InputLabel id="childrenLabelId">Children</InputLabel>
-                                            <Select
-                                                labelId="childrenLabelId"
-                                                id="childrenId"
-                                                multiple
-                                                value={createPerson.children.map((id) => id.toString())}
-                                                onChange={(event: any) => {
-                                                    let value: number[] = [];
-                                                    try {
-                                                        if (event.target.value != null && event.target.value !== 'unknown') {
-                                                            if (Array.isArray(event.target.value)) {
-                                                                value = event.target.value.map((value: string) =>
-                                                                    parseInt(value)
-                                                                )
-                                                            } else {
-                                                                value = [parseInt(event.target.value)];
-                                                            }
-                                                        }
-                                                    } catch (error) {
-                                                        console.error(error);
-                                                    }
-                                                    setCreatePerson({
-                                                        ...createPerson, children: value
-                                                    });
-                                                }}
-                                                input={<Input id="select-multiple-chip" />}
-                                                renderValue={(selected: string[]) => (
-                                                    <div className={classes.chips}>
-                                                        {selected.map((value: string) => (
-                                                            <Chip
-                                                                key={value}
-                                                                label={userMap.get(parseInt(value))?.forename}
-                                                                className={classes.chip} />
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            // MenuProps={MenuProps}
-                                            >
-                                                {peopleOptionList}
-                                            </Select>
-                                        </FormControl>
-                                    </FormGroup>
-                                    <FormGroup row={true} >
-                                        <FormControl className={classes.inputstyle}>
                                             <InputLabel id="marriagesLabelId">Marriages</InputLabel>
                                             <Select
                                                 labelId="marriagesLabelId"
                                                 id="marriagesId"
                                                 multiple
-                                                value={createPerson.marriagesWithUsers.map((id) => id.toString())}
+                                                value={createPerson.marriages.map((id) => id.toString())}
                                                 onChange={(event: any) => {
                                                     let value: number[] = [];
                                                     try {
@@ -474,7 +433,7 @@ export default function PersonEditPage(props: ModifyPersonProps): ReactElement {
                                                         console.error(error);
                                                     }
                                                     setCreatePerson({
-                                                        ...createPerson, marriagesWithUsers: value
+                                                        ...createPerson, marriages: value
                                                     });
                                                 }}
                                                 input={<Input id="select-multiple-chip" />}

@@ -10,10 +10,12 @@ import {
     useHistory
 } from "react-router-dom";
 import { Logger } from '../libs/Logger';
-import { AllMarriagesDocument, AllUsersDocument } from '../libs/generated/graphql';
 import Config from '../libs/Config';
 import { getPersonsFromServer, getTreeGraphDataFromServer } from '../libs/ParserCSVToPerson';
-import { useQuery } from '@apollo/client';
+import { QueryFunctionContext, UseMutationResult, useQuery, UseQueryOptions, UseQueryResult } from 'react-query';
+import queryConstants from '../libs/queryConstants';
+import { apiCallGetPersons } from '../libs/api';
+import { getParseTreeNode } from 'typescript';
 // import { draw } from '../libs/d3treehelper';
 
 
@@ -189,27 +191,25 @@ export default function FamilyTreeGraph(props: FamilyTreeGraphProps): ReactEleme
         personList: null,
         dataset: null
     });
-    const useAllUsers = useQuery(AllUsersDocument, { fetchPolicy: "no-cache" });
-    const useAllMarriages = useQuery(AllMarriagesDocument, { fetchPolicy: "no-cache" });
+
+    const queryPerson = useQuery<Map<number, PersonEntry>, Error>(queryConstants.GET_PERSONS, apiCallGetPersons);
 
     useEffect(() => {
         async function fetchData() {
-            if (useAllUsers.data.allUsers) {
-                const dataset = await getTreeGraphDataFromServer(useAllUsers.data.allUsers, useAllMarriages.data.allMarriages);
-                const personList = await getPersonsFromServer(useAllUsers.data.allUsers);
-                setPersonData({ dataset, personList });
-                Logger.info("Data received", { dataset, personList });
+            if (queryPerson.data) {
+                setPersonData({
+                    dataset: getTreeGraphDataFromServer(queryPerson.data),
+                    personList: queryPerson.data
+                });
+                // Logger.info("Data received", { dataset, personList });
             }
         }
 
-        if (useAllUsers.data &&
-            !useAllUsers.loading &&
-            useAllMarriages.data &&
-            !useAllMarriages.loading) {
+        if (queryPerson.data && !queryPerson.isLoading) {
             d3.select("svg").selectAll("*").remove();
             fetchData();
         }
-    }, [useAllUsers.data, useAllMarriages.data]);
+    }, [queryPerson.data, queryPerson.error, queryPerson.isLoading]);
 
     const draw = function (ref: React.MutableRefObject<SVGSVGElement>, dataset: TreeGraphData, width: number, height: number) {
         if (ref.current == null) return;
@@ -376,15 +376,20 @@ export default function FamilyTreeGraph(props: FamilyTreeGraphProps): ReactEleme
         draw(ref, personData.dataset, props.width, props.height);
     }, [props.height, props.width, personData]);
 
+    let loadingState = "Loading";
+    if (queryPerson.error)
+        loadingState = queryPerson.error.message;
+    else if (queryPerson.data)
+        loadingState = "Done";
+
     const showLoadingStatus = (
         <div>
             <h1>Loading</h1>
-            <h2>Users: {useAllUsers.loading}</h2>
-            <h2>Marriages: {useAllMarriages.loading}</h2>
+            <h2>Users: {loadingState}</h2>
         </div>
     );
     return (
-        (!useAllUsers.loading && !useAllMarriages.loading
+        (!queryPerson.isLoading
             ? <div style={{ "overflow": "hidden" }}>
                 <svg ref={ref} />
                 <Fab color="primary" aria-label="add" style={{
@@ -401,3 +406,5 @@ export default function FamilyTreeGraph(props: FamilyTreeGraphProps): ReactEleme
         )
     );
 }
+
+
